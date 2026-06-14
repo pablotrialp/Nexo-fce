@@ -1,0 +1,33 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tutor IA | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="materia.html?materia=administracion" data-subject-link="materia.html">Materia</a><a href="desafio.html?materia=administracion" data-subject-link="desafio.html">Desafio</a><a href="biblioteca.html">Biblioteca</a><a href="progreso.html">Progreso</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesion</button></div>
+    </nav>
+  </header>
+  <main class="container">
+    <section class="page-head"><h1>Tutor IA</h1><p>Asistencia de estudio para resolver dudas frecuentes de <strong data-subject-name>Administracion I</strong>. <span data-tutor-intro></span></p></section>
+    <section class="card">
+      <div class="chat" data-chat></div>
+      <form class="form" data-chat-form style="margin-top:18px;">
+        <div class="field"><label for="chat">Nueva consulta</label><input id="chat" placeholder="Escribi una pregunta sobre la materia"></div>
+        <button class="btn btn-primary" type="submit">Enviar consulta</button>
+      </form>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Asistencia inteligente para el estudio.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+

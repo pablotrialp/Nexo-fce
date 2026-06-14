@@ -1,0 +1,50 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seleccion de carrera | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="biblioteca.html">Biblioteca</a><a href="progreso.html">Progreso</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesion</button></div>
+    </nav>
+  </header>
+  <main class="container">
+    <section class="page-head">
+      <h1>Selecciona tu carrera</h1>
+      <p>La ruta completa disponible corresponde a Licenciatura en Administracion. Las demas carreras quedan visibles para futuras etapas.</p>
+    </section>
+    <form data-career-form>
+      <div class="grid grid-3">
+        <label class="card career-card"><input type="radio" name="career" value="Contador Publico"><span class="career-code">CP</span><h3>Contador Publico</h3><span class="soon">Contenido disponible proximamente</span></label>
+        <label class="card career-card"><input type="radio" name="career" value="Licenciatura en Administracion"><span class="career-code">LA</span><h3>Licenciatura en Administracion</h3><p>Recorrido completo de diagnosticos, desafios, biblioteca, tutor IA y progreso.</p></label>
+        <label class="card career-card"><input type="radio" name="career" value="Licenciatura en Economia"><span class="career-code">LE</span><h3>Licenciatura en Economia</h3><span class="soon">Contenido disponible proximamente</span></label>
+        <label class="card career-card"><input type="radio" name="career" value="Licenciatura en Turismo"><span class="career-code">LT</span><h3>Licenciatura en Turismo</h3><span class="soon">Contenido disponible proximamente</span></label>
+        <label class="card career-card"><input type="radio" name="career" value="Tecnicatura en Cooperativismo"><span class="career-code">TC</span><h3>Tecnicatura en Cooperativismo</h3><span class="soon">Contenido disponible proximamente</span></label>
+        <label class="card career-card"><input type="radio" name="career" value="Ciencia de Datos en Organizaciones"><span class="career-code">CDO</span><h3>Ciencia de Datos en Organizaciones</h3><span class="soon">Contenido disponible proximamente</span></label>
+      </div>
+      <div class="career-confirm" data-career-confirm>
+        <div>
+          <small>Carrera seleccionada</small>
+          <strong data-career-confirm-title></strong>
+          <p data-career-confirm-text></p>
+        </div>
+        <button class="btn btn-primary" type="submit" data-career-confirm-button>Continuar</button>
+      </div>
+      <div class="section compact-section">
+        <div class="message" data-message></div>
+      </div>
+    </form>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>FCE-UNLP - Acompanamiento academico.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+

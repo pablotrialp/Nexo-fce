@@ -1,0 +1,39 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registro | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="index.html">Inicio</a><a href="login.html">Login</a></div>
+    </nav>
+  </header>
+  <main class="container auth-shell">
+    <section class="card auth-card">
+      <span class="eyebrow">Nuevo estudiante</span>
+      <h1>Crear cuenta</h1>
+      <form class="form" data-auth-form data-auth-mode="register" data-redirect="seleccion-carrera.html">
+        <div class="grid grid-2">
+          <div class="field"><label for="name">Nombre</label><input id="name" required placeholder="Nombre"></div>
+          <div class="field"><label for="last">Apellido</label><input id="last" required placeholder="Apellido"></div>
+        </div>
+        <div class="field"><label for="email">Email</label><input id="email" type="email" required placeholder="tu@email.com"></div>
+        <div class="field"><label for="password">Contrasena</label><input id="password" type="password" required placeholder="Minimo 8 caracteres"></div>
+        <div class="field"><label for="confirm">Confirmar contrasena</label><input id="confirm" type="password" required placeholder="Repeti tu contrasena"></div>
+        <button class="btn btn-primary" type="submit">Crear cuenta</button>
+        <div class="message" data-message>Cuenta creada correctamente. Redirigiendo...</div>
+      </form>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Ingreso universitario acompanado.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,1572 @@
+const subjects = {
+  administracion: {
+    name: "Administracion I",
+    short: "Administracion",
+    description: "Conceptos introductorios de organizaciones, objetivos, ambiente, sistemas y criterios administrativos.",
+    source: "Resumen de Administracion I",
+    diagnosisResult: "Nivel inicial intermedio en Administracion I. Reforza organizacion como entidad social, ambiente organizacional y criterios de eficacia, eficiencia y efectividad.",
+    questions: [
+      {
+        type: "choice",
+        text: "Segun el material, una organizacion puede definirse como:",
+        options: [
+          "Una unidad social construida deliberadamente para alcanzar fines especificos.",
+          "Un conjunto de bienes sin personas ni objetivos.",
+          "Una actividad individual sin division de tareas."
+        ],
+        answer: 0
+      },
+      {
+        type: "truefalse",
+        text: "La eficiencia mide el logro de objetivos sin considerar los recursos utilizados.",
+        answer: false
+      },
+      {
+        type: "choice",
+        text: "Cual de estos elementos pertenece al ambiente especifico de una organizacion?",
+        options: ["Clientes y proveedores.", "Clima global del planeta como unica variable.", "La historia completa de la humanidad."],
+        answer: 0
+      },
+      {
+        type: "truefalse",
+        text: "Los objetivos guian actividades, fijan prioridades y permiten controlar el desempeno.",
+        answer: true
+      },
+      {
+        type: "choice",
+        text: "La efectividad se entiende como:",
+        options: ["Ser eficaz y eficiente a la vez, sosteniendolo en el tiempo.", "Ahorrar recursos aunque no se cumplan objetivos.", "Cumplir objetivos una sola vez sin revisar resultados."],
+        answer: 0
+      }
+    ],
+    challenge: {
+      title: "Organizaciones y criterios administrativos",
+      prompt: "Practica con preguntas rapidas sobre organizacion, ambiente, objetivos, eficacia, eficiencia y efectividad."
+    },
+    tutor: [
+      { keywords: ["eficiencia", "eficacia", "efectividad"], answer: "En Administracion I, eficacia es alcanzar los objetivos previstos; eficiencia es hacerlo atendiendo al uso de recursos, buscando producir mas con menos; efectividad combina ambas y las sostiene en el tiempo." },
+      { keywords: ["organizacion", "organizaciones"], answer: "El resumen define a las organizaciones como unidades sociales o agrupaciones humanas deliberadamente construidas para alcanzar fines especificos. Tambien tienen personas, objetivos, actividades, division del trabajo, normas y continuidad." },
+      { keywords: ["ambiente", "contexto"], answer: "El ambiente general influye de manera indirecta mediante factores culturales, politicos, legales, economicos, tecnologicos, naturales y sociodemograficos. El ambiente especifico influye de forma directa: clientes, proveedores, competidores, financiamiento y reguladores." },
+      { keywords: ["objetivo", "meta", "fines"], answer: "Los fines explican la razon de ser de la organizacion. Los objetivos son resultados futuros que guian actividades, fijan prioridades y permiten controlar desempeno. Las metas son resultados esperados de corto plazo para areas o subareas." }
+    ]
+  },
+  economia: {
+    name: "Introduccion a la Economia",
+    short: "Economia",
+    description: "Escasez, decisiones, flujo circular, factores de produccion, frontera de posibilidades, costo de oportunidad y enfoques micro y macro.",
+    source: "Resumen de Introduccion a la Economia",
+    diagnosisResult: "Buen inicio en Economia. Reforza escasez, costo de oportunidad, flujo circular y frontera de posibilidades de produccion.",
+    questions: [
+      {
+        type: "choice",
+        text: "La economia parte del problema de que:",
+        options: ["Los recursos son escasos y deben asignarse entre fines alternativos.", "Los recursos son ilimitados.", "Todas las necesidades se satisfacen automaticamente."],
+        answer: 0
+      },
+      {
+        type: "choice",
+        text: "El costo de oportunidad de un bien es:",
+        options: ["Aquello a lo que se renuncia para obtenerlo.", "Su precio escrito en una factura.", "La suma de todos los impuestos de la economia."],
+        answer: 0
+      },
+      {
+        type: "truefalse",
+        text: "La FPP muestra combinaciones posibles de dos bienes dadas la tecnologia y los recursos disponibles.",
+        answer: true
+      },
+      {
+        type: "choice",
+        text: "En el flujo circular, las familias:",
+        options: ["Son duenas de factores de produccion y compran bienes y servicios.", "Solo producen bienes finales.", "No participan de ningun mercado."],
+        answer: 0
+      },
+      {
+        type: "truefalse",
+        text: "La macroeconomia estudia decisiones individuales de familias y empresas, mientras que la microeconomia estudia inflacion y desempleo agregados.",
+        answer: false
+      }
+    ],
+    challenge: {
+      title: "Escasez, FPP y costo de oportunidad",
+      prompt: "Responde preguntas cortas para practicar decisiones economicas, intercambio y frontera de posibilidades."
+    },
+    tutor: [
+      { keywords: ["escasez", "recursos"], answer: "El resumen plantea que existe escasez de recursos y que deben asignarse a muchos fines distintos. Por eso la economia estudia decisiones y trade-offs." },
+      { keywords: ["costo", "oportunidad"], answer: "El costo de oportunidad es aquello a lo que se debe renunciar para obtener un bien. Es central para entender especializacion, intercambio y FPP." },
+      { keywords: ["fpp", "frontera"], answer: "La FPP representa combinaciones de dos bienes que una economia puede producir con recursos y tecnologia disponibles. Permite ver eficiencia, ineficiencia, trade-offs y crecimiento." },
+      { keywords: ["micro", "macro"], answer: "Microeconomia estudia como familias y empresas toman decisiones e interactuan. Macroeconomia observa la economia agregada, incluyendo inflacion, desempleo y crecimiento." }
+    ]
+  },
+  contabilidad: {
+    name: "Contabilidad I",
+    short: "Contabilidad",
+    description: "Sistema de informacion contable, patrimonio, usuarios, principios, activo, pasivo, patrimonio neto y ecuacion contable.",
+    source: "Resumen de Contabilidad I",
+    diagnosisResult: "Base inicial correcta en Contabilidad I. Reforza patrimonio, informacion contable, activo, pasivo y ecuacion fundamental.",
+    questions: [
+      {
+        type: "choice",
+        text: "La contabilidad se ocupa principalmente de:",
+        options: ["Informar sobre patrimonio, economia, estado financiero y sus cambios.", "Solo registrar ventas sin producir informacion.", "Disenar campanas publicitarias."],
+        answer: 0
+      },
+      {
+        type: "truefalse",
+        text: "La teneduria de libros y la contabilidad son exactamente lo mismo.",
+        answer: false
+      },
+      {
+        type: "choice",
+        text: "La igualdad fundamental contable es:",
+        options: ["Activo = Pasivo + Patrimonio neto.", "Pasivo = Ventas + Clientes.", "Activo = Gastos - Ingresos."],
+        answer: 0
+      },
+      {
+        type: "choice",
+        text: "El activo incluye bienes tangibles e intangibles que:",
+        options: ["Fueron transmitidos en propiedad al ente y pueden brindar beneficios futuros.", "Siempre son deudas con terceros.", "Nunca pertenecen al ente."],
+        answer: 0
+      },
+      {
+        type: "truefalse",
+        text: "El principio de devengado indica registrar cambios cuando se originan, sin importar si se cancelan en ese momento.",
+        answer: true
+      }
+    ],
+    challenge: {
+      title: "Patrimonio y ecuacion contable",
+      prompt: "Practica conceptos de informacion contable, patrimonio, activo, pasivo y principios contables."
+    },
+    tutor: [
+      { keywords: ["contabilidad", "teneduria"], answer: "La teneduria de libros se vincula con el registro. La contabilidad, ademas de registrar, procesa y comunica informacion patrimonial, economica y financiera para controlar y tomar decisiones." },
+      { keywords: ["activo", "pasivo", "patrimonio"], answer: "La igualdad fundamental es Activo = Pasivo + Patrimonio neto. El activo reune bienes y derechos del ente; el pasivo representa obligaciones; el patrimonio neto incluye aportes y resultados acumulados." },
+      { keywords: ["devengado"], answer: "El principio de devengado indica que los cambios deben registrarse cuando se originan, aunque no se cobren o paguen en ese mismo momento." },
+      { keywords: ["informes", "usuarios"], answer: "Los informes contables comunican informacion procesada a usuarios internos y externos. El usuario externo recibe informacion periodica y sintetica sobre patrimonio, variaciones y aspectos financieros." }
+    ]
+  }
+};
+
+const bibliographyNote = "Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas para las materias iniciales.";
+const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "tutor.html", "progreso.html"];
+let activeSession = null;
+const progressKey = "nexoProgress";
+
+const challengeBlocks = {
+  administracion: [
+    {
+      title: "Conceptos base",
+      label: "Base",
+      questions: [
+        subjects.administracion.questions[0],
+        subjects.administracion.questions[1],
+        subjects.administracion.questions[3]
+      ]
+    },
+    {
+      title: "Ambiente y objetivos",
+      label: "Contexto",
+      questions: [
+        subjects.administracion.questions[2],
+        subjects.administracion.questions[4],
+        {
+          type: "choice",
+          text: "Que funcion cumplen las metas dentro de una organizacion?",
+          options: ["Concretan resultados esperados de corto plazo.", "Reemplazan por completo a los fines institucionales.", "Eliminan la necesidad de controlar resultados."],
+          answer: 0
+        }
+      ]
+    },
+    {
+      title: "Aplicacion practica",
+      label: "Practica",
+      questions: [
+        {
+          type: "truefalse",
+          text: "Una organizacion puede adaptarse mejor si interpreta los cambios de su ambiente.",
+          answer: true
+        },
+        {
+          type: "choice",
+          text: "Si una empresa logra su objetivo usando menos recursos que antes, mejora principalmente su:",
+          options: ["Eficiencia.", "Identidad visual.", "Tamano juridico."],
+          answer: 0
+        },
+        {
+          type: "choice",
+          text: "Cual seria un indicador razonable para revisar desempeno?",
+          options: ["Comparar objetivos previstos con resultados obtenidos.", "Ignorar los recursos utilizados.", "Medir solo opiniones sin datos."],
+          answer: 0
+        }
+      ]
+    }
+  ],
+  economia: [
+    {
+      title: "Escasez y decisiones",
+      label: "Base",
+      questions: [
+        subjects.economia.questions[0],
+        subjects.economia.questions[1],
+        {
+          type: "truefalse",
+          text: "Elegir entre alternativas implica asumir algun costo de oportunidad.",
+          answer: true
+        }
+      ]
+    },
+    {
+      title: "FPP y agentes",
+      label: "Modelo",
+      questions: [
+        subjects.economia.questions[2],
+        subjects.economia.questions[3],
+        {
+          type: "choice",
+          text: "Un punto dentro de la FPP suele representar:",
+          options: ["Uso ineficiente de recursos disponibles.", "Produccion imposible.", "Maxima eficiencia tecnica."],
+          answer: 0
+        }
+      ]
+    },
+    {
+      title: "Micro y macro",
+      label: "Practica",
+      questions: [
+        subjects.economia.questions[4],
+        {
+          type: "choice",
+          text: "Cual tema corresponde a la macroeconomia?",
+          options: ["Inflacion agregada.", "La eleccion de una familia entre dos bienes.", "La estructura de costos de una empresa puntual."],
+          answer: 0
+        },
+        {
+          type: "truefalse",
+          text: "El flujo circular ayuda a visualizar intercambios entre familias, empresas y mercados.",
+          answer: true
+        }
+      ]
+    }
+  ],
+  contabilidad: [
+    {
+      title: "Informacion contable",
+      label: "Base",
+      questions: [
+        subjects.contabilidad.questions[0],
+        subjects.contabilidad.questions[1],
+        {
+          type: "choice",
+          text: "Para que sirve la informacion contable?",
+          options: ["Para controlar y tomar decisiones.", "Solo para decorar informes.", "Para evitar registrar operaciones."],
+          answer: 0
+        }
+      ]
+    },
+    {
+      title: "Patrimonio",
+      label: "Ecuacion",
+      questions: [
+        subjects.contabilidad.questions[2],
+        subjects.contabilidad.questions[3],
+        {
+          type: "choice",
+          text: "El pasivo representa principalmente:",
+          options: ["Obligaciones del ente con terceros.", "Bienes de uso propio sin deuda.", "Resultados positivos acumulados."],
+          answer: 0
+        }
+      ]
+    },
+    {
+      title: "Principios y aplicacion",
+      label: "Practica",
+      questions: [
+        subjects.contabilidad.questions[4],
+        {
+          type: "truefalse",
+          text: "El patrimonio neto se vincula con aportes y resultados acumulados.",
+          answer: true
+        },
+        {
+          type: "choice",
+          text: "Si se compra mercaderia a credito, aumenta:",
+          options: ["Activo y pasivo.", "Solo patrimonio neto.", "Solo ingresos por ventas."],
+          answer: 0
+        }
+      ]
+    }
+  ]
+};
+
+const reinforcementBlocks = {
+  administracion: [
+    {
+      title: "Integracion de conceptos",
+      label: "Integracion",
+      questions: [
+        {
+          type: "choice",
+          text: "Si una organizacion redefine prioridades frente a nuevos competidores, esta respondiendo a cambios del:",
+          options: ["Ambiente especifico.", "Patrimonio neto.", "Sistema de registracion."],
+          answer: 0
+        },
+        {
+          type: "truefalse",
+          text: "Los fines explican la razon de ser de una organizacion y los objetivos traducen resultados buscados.",
+          answer: true
+        },
+        {
+          type: "choice",
+          text: "Que combinacion representa mejor la efectividad?",
+          options: ["Alcanzar objetivos usando bien los recursos y sostenerlo en el tiempo.", "Ahorrar recursos sin cumplir objetivos.", "Cumplir una tarea sin medir resultados."],
+          answer: 0
+        }
+      ]
+    },
+    {
+      title: "Caso breve",
+      label: "Caso",
+      questions: [
+        {
+          type: "choice",
+          text: "Una facultad organiza tutorias para reducir abandonos. Ese resultado esperado funciona como:",
+          options: ["Objetivo.", "Proveedor.", "Activo intangible."],
+          answer: 0
+        },
+        {
+          type: "truefalse",
+          text: "Controlar desempeno permite comparar resultados obtenidos con objetivos previstos.",
+          answer: true
+        },
+        {
+          type: "choice",
+          text: "Si se cumplen objetivos pero con desperdicio alto de recursos, falta mejorar:",
+          options: ["Eficiencia.", "Mision.", "Ambiente general."],
+          answer: 0
+        }
+      ]
+    }
+  ],
+  economia: [
+    {
+      title: "Aplicacion de modelos",
+      label: "Integracion",
+      questions: [
+        {
+          type: "choice",
+          text: "Si una economia produce fuera de su FPP, esa combinacion es:",
+          options: ["Inalcanzable con recursos y tecnologia actuales.", "Siempre eficiente.", "Un punto de desempleo."],
+          answer: 0
+        },
+        {
+          type: "truefalse",
+          text: "La especializacion y el intercambio pueden mejorar las posibilidades de consumo.",
+          answer: true
+        },
+        {
+          type: "choice",
+          text: "Cuando una empresa decide cuanto producir, el analisis pertenece principalmente a:",
+          options: ["Microeconomia.", "Macroeconomia.", "Contabilidad patrimonial."],
+          answer: 0
+        }
+      ]
+    },
+    {
+      title: "Decisiones y agregados",
+      label: "Caso",
+      questions: [
+        {
+          type: "choice",
+          text: "El desempleo nacional se analiza como variable:",
+          options: ["Macroeconomica.", "Individual.", "Exclusivamente contable."],
+          answer: 0
+        },
+        {
+          type: "truefalse",
+          text: "La escasez obliga a elegir incluso cuando no hay dinero involucrado.",
+          answer: true
+        },
+        {
+          type: "choice",
+          text: "En el flujo circular, las empresas demandan factores para:",
+          options: ["Producir bienes y servicios.", "Eliminar mercados.", "Evitar intercambios."],
+          answer: 0
+        }
+      ]
+    }
+  ],
+  contabilidad: [
+    {
+      title: "Ecuacion aplicada",
+      label: "Integracion",
+      questions: [
+        {
+          type: "choice",
+          text: "Si aumenta un activo y aumenta una deuda por el mismo importe, la ecuacion contable:",
+          options: ["Se mantiene equilibrada.", "Siempre se rompe.", "Elimina el patrimonio neto."],
+          answer: 0
+        },
+        {
+          type: "truefalse",
+          text: "Un informe contable puede ser util para usuarios internos y externos.",
+          answer: true
+        },
+        {
+          type: "choice",
+          text: "Los bienes y derechos del ente se agrupan dentro del:",
+          options: ["Activo.", "Pasivo.", "Resultado negativo."],
+          answer: 0
+        }
+      ]
+    },
+    {
+      title: "Registro y criterio",
+      label: "Caso",
+      questions: [
+        {
+          type: "choice",
+          text: "Registrar una operacion cuando se origina responde al principio de:",
+          options: ["Devengado.", "Publicidad.", "Costo de oportunidad."],
+          answer: 0
+        },
+        {
+          type: "truefalse",
+          text: "La contabilidad no se limita al registro: tambien procesa y comunica informacion.",
+          answer: true
+        },
+        {
+          type: "choice",
+          text: "Una obligacion pendiente de pago forma parte del:",
+          options: ["Pasivo.", "Activo.", "Ingreso devengado."],
+          answer: 0
+        }
+      ]
+    }
+  ]
+};
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const canContinue = await protectPage();
+  if (!canContinue) return;
+  initAuthForms();
+  await initPasswordReset();
+  initLogout();
+  await renderLoggedInUser();
+  await hydrateUserProgress();
+  initCareerForm();
+  renderSubjectPage();
+  await hydrateChallengeQuestions();
+  renderDashboard();
+  renderDiagnostic();
+  renderChallenge();
+  renderTutor();
+  renderProgressPage();
+});
+
+function currentSubject() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("materia") || "administracion";
+  return subjects[slug] ? slug : "administracion";
+}
+
+function subjectUrl(page, slug = currentSubject()) {
+  return `${page}?materia=${slug}`;
+}
+
+async function protectPage() {
+  const page = window.location.pathname.split("/").pop();
+  const isProtected = document.body.dataset.authRequired === "true" || protectedPages.includes(page);
+  if (!isProtected) return true;
+
+  const supabase = window.nexoSupabase;
+  if (!supabase) {
+    window.location.href = "login.html";
+    return false;
+  }
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session) {
+    window.location.href = "login.html";
+    return false;
+  }
+
+  activeSession = data.session;
+  return true;
+}
+
+function userDisplayName(user) {
+  const metadata = user?.user_metadata || {};
+  const fullName = metadata.full_name || [metadata.first_name, metadata.last_name].filter(Boolean).join(" ");
+  return fullName?.trim() || user?.email?.split("@")[0] || localStorage.getItem("nexoStudentName") || "estudiante";
+}
+
+async function currentSession() {
+  if (activeSession) return activeSession;
+  const supabase = window.nexoSupabase;
+  if (!supabase) return null;
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session) return null;
+  activeSession = data.session;
+  return activeSession;
+}
+
+async function renderLoggedInUser() {
+  const targets = document.querySelectorAll("[data-nav-user-name], [data-student-name]");
+  if (!targets.length) return;
+
+  const session = await currentSession();
+  const displayName = userDisplayName(session?.user);
+  if (displayName) localStorage.setItem("nexoStudentName", displayName);
+
+  targets.forEach((target) => {
+    target.textContent = displayName;
+  });
+}
+
+function initAuthForms() {
+  const form = document.querySelector("[data-auth-form]");
+  if (!form) return;
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const supabase = window.nexoSupabase;
+    const message = document.querySelector("[data-message]");
+    const email = document.querySelector("#email")?.value?.trim();
+    const password = document.querySelector("#password")?.value || "";
+
+    if (!supabase) {
+      showAuthMessage(message, "No se pudo conectar con Supabase. Revisa la configuracion del cliente.", true);
+      return;
+    }
+
+    if (form.dataset.authMode === "register") {
+      await registerWithSupabase(form, supabase, message, email, password);
+      return;
+    }
+
+    await loginWithSupabase(supabase, message, email, password);
+  });
+}
+
+async function initPasswordReset() {
+  const resetLink = document.querySelector("[data-password-reset-link]");
+  const resetRequestForm = document.querySelector("[data-password-reset-request]");
+  const resetCancel = document.querySelector("[data-password-reset-cancel]");
+  const resetForm = document.querySelector("[data-reset-password-form]");
+  const authForm = document.querySelector("[data-auth-form]");
+  const message = document.querySelector("[data-message]");
+  const supabase = window.nexoSupabase;
+  const isResetFlow = isPasswordRecoveryUrl();
+
+  if (resetLink) {
+    resetLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      hideAuthMessage(message);
+      if (authForm) authForm.hidden = true;
+      if (resetRequestForm) resetRequestForm.hidden = false;
+      if (resetForm) resetForm.hidden = true;
+      const resetEmail = document.querySelector("#reset-email");
+      if (resetEmail) {
+        resetEmail.value = document.querySelector("#email")?.value?.trim() || "";
+        resetEmail.focus();
+      }
+    });
+  }
+
+  if (resetCancel) {
+    resetCancel.addEventListener("click", () => {
+      hideAuthMessage(message);
+      if (resetRequestForm) resetRequestForm.hidden = true;
+      if (resetForm) resetForm.hidden = true;
+      if (authForm) authForm.hidden = false;
+      document.querySelector("#email")?.focus();
+    });
+  }
+
+  if (resetRequestForm) {
+    resetRequestForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!supabase) {
+        showAuthMessage(message, "No se pudo conectar con Supabase. Revisa la configuracion del cliente.", true);
+        return;
+      }
+
+      const emailInput = document.querySelector("#reset-email");
+      const email = emailInput?.value?.trim();
+      if (!email) {
+        showAuthMessage(message, "Ingresa tu email para enviar el enlace de recuperacion.", true);
+        emailInput?.focus();
+        return;
+      }
+
+      const redirectTo = `${window.location.origin}${window.location.pathname}?reset=password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
+      if (error) {
+        showAuthMessage(message, error.message || "No se pudo enviar el email de recuperacion.", true);
+        return;
+      }
+
+      showAuthMessage(message, "Te enviamos un enlace para restablecer tu contrasena. Revisa tu email.");
+    });
+  }
+
+  if (isResetFlow && resetForm && authForm) {
+    authForm.hidden = true;
+    if (resetRequestForm) resetRequestForm.hidden = true;
+    resetForm.hidden = true;
+
+    const recoverySession = await createRecoverySession(supabase);
+    if (recoverySession) {
+      activeSession = recoverySession;
+      resetForm.hidden = false;
+    } else {
+      showAuthMessage(message, "El enlace de recuperación venció o no es válido. Solicitá uno nuevo.", true);
+      authForm.hidden = false;
+    }
+  } else {
+    if (authForm) authForm.hidden = false;
+    if (resetRequestForm) resetRequestForm.hidden = true;
+    if (resetForm) resetForm.hidden = true;
+  }
+
+  if (!resetForm) return;
+
+  resetForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (!supabase) {
+      showAuthMessage(message, "No se pudo conectar con Supabase. Revisa la configuracion del cliente.", true);
+      return;
+    }
+
+    const password = document.querySelector("#new-password")?.value || "";
+    const confirmPassword = document.querySelector("#confirm-password")?.value || "";
+    if (password !== confirmPassword) {
+      showAuthMessage(message, "Las contrasenas no coinciden.", true);
+      return;
+    }
+
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      showAuthMessage(message, "El enlace de recuperación venció o no es válido. Solicitá uno nuevo.", true);
+      resetForm.hidden = true;
+      if (authForm) authForm.hidden = false;
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      showAuthMessage(message, error.message || "No se pudo actualizar la contrasena.", true);
+      return;
+    }
+
+    showAuthMessage(message, "Contrasena actualizada correctamente. Redirigiendo...");
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 650);
+  });
+}
+
+function isPasswordRecoveryUrl() {
+  const query = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  return query.get("reset") === "password" || query.get("type") === "recovery" || hash.get("type") === "recovery" || Boolean(hash.get("access_token") || hash.get("refresh_token") || query.get("code"));
+}
+
+async function createRecoverySession(supabase) {
+  if (!supabase) return null;
+
+  const query = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const code = query.get("code");
+  const accessToken = hash.get("access_token");
+  const refreshToken = hash.get("refresh_token");
+
+  try {
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) throw error;
+      return data.session || null;
+    }
+
+    if (accessToken && refreshToken) {
+      const { data, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+      if (error) throw error;
+      return data.session || null;
+    }
+
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return data.session || null;
+  } catch (error) {
+    console.error("Error al validar el enlace de recuperacion en NEXO.", error);
+    return null;
+  }
+}
+
+function hideAuthMessage(message) {
+  if (!message) return;
+  message.classList.remove("show", "error");
+}
+
+async function loginWithSupabase(supabase, message, email, password) {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error || !data.session) {
+      showAuthMessage(message, error?.message || "Email o contrasena incorrectos.", true);
+      return;
+    }
+
+    window.location.href = "seleccion-carrera.html";
+  } catch (error) {
+    showAuthMessage(message, "Ocurrio un error inesperado. Intenta nuevamente.", true);
+    console.error("Error de login en NEXO.", error);
+  }
+}
+
+async function registerWithSupabase(form, supabase, message, email, password) {
+  try {
+    const confirmPassword = document.querySelector("#confirm")?.value || "";
+    if (password !== confirmPassword) {
+      showAuthMessage(message, "Las contrasenas no coinciden.", true);
+      return;
+    }
+
+    const studentName = document.querySelector("#name")?.value?.trim() || "estudiante";
+    const lastName = document.querySelector("#last")?.value?.trim() || "";
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: studentName,
+          last_name: lastName,
+          full_name: `${studentName} ${lastName}`.trim()
+        }
+      }
+    });
+
+    if (error) {
+      showAuthMessage(message, error.message || "No se pudo crear la cuenta.", true);
+      return;
+    }
+
+    localStorage.setItem("nexoStudentName", studentName);
+    const session = data.session;
+    showAuthMessage(message, session ? "Cuenta creada correctamente. Redirigiendo..." : "Cuenta creada. Revisa tu email para confirmar el acceso.");
+
+    if (!session) return;
+
+    setTimeout(() => {
+      window.location.href = form.dataset.redirect || "seleccion-carrera.html";
+    }, 650);
+  } catch (error) {
+    showAuthMessage(message, "Ocurrio un error inesperado. Intenta nuevamente.", true);
+    console.error("Error de registro en NEXO.", error);
+  }
+}
+
+function showAuthMessage(message, text, isError = false) {
+  if (!message) return;
+  message.textContent = text;
+  message.classList.toggle("error", isError);
+  message.classList.add("show");
+}
+
+function initLogout() {
+  document.querySelectorAll("[data-logout]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const supabase = window.nexoSupabase;
+      if (supabase) await supabase.auth.signOut();
+      window.location.href = "index.html";
+    });
+  });
+}
+
+function initCareerForm() {
+  const careerForm = document.querySelector("[data-career-form]");
+  if (!careerForm) return;
+  const confirm = document.querySelector("[data-career-confirm]");
+  const confirmTitle = document.querySelector("[data-career-confirm-title]");
+  const confirmText = document.querySelector("[data-career-confirm-text]");
+  const confirmButton = document.querySelector("[data-career-confirm-button]");
+
+  const paintSelection = () => {
+    const selected = careerForm.querySelector("input:checked");
+    if (!selected || !confirm) return;
+    const isReady = selected.value === "Licenciatura en Administracion";
+    confirmTitle.textContent = selected.value;
+    confirmText.textContent = isReady
+      ? "Recorrido completo disponible. Podes continuar al panel academico."
+      : "Esta carrera esta visible, pero el recorrido completo todavia no esta habilitado.";
+    confirmButton.disabled = !isReady;
+    confirmButton.textContent = isReady ? "Continuar" : "Proximamente";
+    confirm.classList.add("show");
+    confirm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+
+  careerForm.addEventListener("change", paintSelection);
+
+  careerForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const selected = careerForm.querySelector("input:checked")?.value;
+    if (selected !== "Licenciatura en Administracion") {
+      const message = document.querySelector("[data-message]");
+      if (message) {
+        message.textContent = "Para continuar, selecciona Licenciatura en Administracion.";
+        message.classList.add("show");
+      }
+      return;
+    }
+    localStorage.setItem("nexoCareer", selected);
+    window.location.href = "dashboard.html";
+  });
+}
+
+function defaultProgress() {
+  return {
+    totalPoints: 0,
+    completedChallenges: 0,
+    completedDiagnostics: 0,
+    streak: 1,
+    studyMinutes: 0,
+    subjects: {}
+  };
+}
+
+function getProgress() {
+  try {
+    return { ...defaultProgress(), ...JSON.parse(localStorage.getItem(progressKey) || "{}") };
+  } catch {
+    return defaultProgress();
+  }
+}
+
+function saveProgress(progress) {
+  localStorage.setItem(progressKey, JSON.stringify(progress));
+}
+
+function normalizeText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function slugFromSubjectName(value) {
+  const normalized = normalizeText(value);
+  if (normalized.includes("admin")) return "administracion";
+  if (normalized.includes("economia")) return "economia";
+  if (normalized.includes("contabilidad")) return "contabilidad";
+  return null;
+}
+
+function subjectNamesForSlug(slug) {
+  const names = {
+    administracion: ["Administracion I", "Administración I"],
+    economia: ["Introduccion a la Economia", "Introducción a la Economía"],
+    contabilidad: ["Contabilidad I"]
+  };
+  return names[slug] || [subjects[slug]?.name].filter(Boolean);
+}
+
+function ensureSubjectProgress(progress, slug) {
+  if (!progress.subjects) progress.subjects = {};
+  if (!progress.subjects[slug]) {
+    progress.subjects[slug] = {
+      points: 0,
+      completedBlocks: [],
+      completedReviewBlocks: [],
+      challengeRound: 0,
+      diagnosticScore: null,
+      lastScore: null,
+      correctAnswers: 0,
+      wrongAnswers: 0
+    };
+  }
+  if (!progress.subjects[slug].completedReviewBlocks) progress.subjects[slug].completedReviewBlocks = [];
+  if (typeof progress.subjects[slug].challengeRound !== "number") progress.subjects[slug].challengeRound = 0;
+  if (typeof progress.subjects[slug].correctAnswers !== "number") progress.subjects[slug].correctAnswers = 0;
+  if (typeof progress.subjects[slug].wrongAnswers !== "number") progress.subjects[slug].wrongAnswers = 0;
+  return progress.subjects[slug];
+}
+
+async function hydrateUserProgress() {
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+  if (!session?.user || !supabase) return;
+
+  const { data, error } = await supabase
+    .from("user_progress")
+    .select("subject,total_points,completed_challenges,correct_answers,wrong_answers,streak,last_activity_at")
+    .eq("user_id", session.user.id);
+
+  if (error || !Array.isArray(data) || !data.length) return;
+
+  const progress = getProgress();
+  progress.totalPoints = 0;
+  progress.completedChallenges = 0;
+  progress.studyMinutes = 0;
+  progress.streak = 1;
+
+  data.forEach((row) => {
+    const slug = subjects[row.subject] ? row.subject : slugFromSubjectName(row.subject);
+    if (!slug || !subjects[slug]) return;
+
+    const subjectProgress = ensureSubjectProgress(progress, slug);
+    const completedCount = Number(row.completed_challenges || 0);
+    const firstRoundTotal = challengeBlocks[slug]?.length || 0;
+    const reviewTotal = reinforcementBlocks[slug]?.length || 0;
+    const completedFirst = Math.min(completedCount, firstRoundTotal);
+    const completedReview = Math.min(Math.max(completedCount - firstRoundTotal, 0), reviewTotal);
+
+    subjectProgress.points = Number(row.total_points || 0);
+    subjectProgress.completedBlocks = Array.from({ length: completedFirst }, (_, index) => index);
+    subjectProgress.completedReviewBlocks = Array.from({ length: completedReview }, (_, index) => index);
+    subjectProgress.challengeRound = completedFirst >= firstRoundTotal && reviewTotal ? 1 : 0;
+    subjectProgress.correctAnswers = Number(row.correct_answers || 0);
+    subjectProgress.wrongAnswers = Number(row.wrong_answers || 0);
+    subjectProgress.lastScore = subjectProgress.lastScore || (row.last_activity_at ? { date: row.last_activity_at } : null);
+
+    progress.totalPoints += subjectProgress.points;
+    progress.completedChallenges += completedCount;
+    progress.studyMinutes += completedCount * 15;
+    progress.streak = Math.max(progress.streak, Number(row.streak || 1));
+  });
+
+  saveProgress(progress);
+}
+
+async function syncSubjectProgress(slug, progress = getProgress()) {
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+  if (!session?.user || !supabase || !subjects[slug]) return;
+
+  const subjectProgress = ensureSubjectProgress(progress, slug);
+  const completedCount = subjectProgress.completedBlocks.length + subjectProgress.completedReviewBlocks.length;
+  const now = new Date().toISOString();
+
+  await supabase.from("user_progress").upsert({
+    user_id: session.user.id,
+    subject: slug,
+    total_points: subjectProgress.points,
+    completed_challenges: completedCount,
+    correct_answers: subjectProgress.correctAnswers || 0,
+    wrong_answers: subjectProgress.wrongAnswers || 0,
+    streak: progress.streak || 1,
+    last_activity_at: now,
+    updated_at: now
+  }, { onConflict: "user_id,subject" });
+}
+
+function storeDiagnosticResult(slug, score, total) {
+  const progress = getProgress();
+  const subjectProgress = ensureSubjectProgress(progress, slug);
+  if (subjectProgress.diagnosticScore === null) progress.completedDiagnostics += 1;
+  subjectProgress.diagnosticScore = { score, total, date: new Date().toISOString() };
+  subjectProgress.correctAnswers += score;
+  subjectProgress.wrongAnswers += total - score;
+  saveProgress(progress);
+  syncSubjectProgress(slug, progress);
+}
+
+function completeChallengeBlock(slug, roundIndex, blockIndex, score, total) {
+  const progress = getProgress();
+  const subjectProgress = ensureSubjectProgress(progress, slug);
+  const completedKey = roundIndex === 0 ? "completedBlocks" : "completedReviewBlocks";
+  const alreadyCompleted = subjectProgress[completedKey].includes(blockIndex);
+  const points = score * 10 + (score === total ? 10 : 0);
+
+  if (!alreadyCompleted) {
+    subjectProgress[completedKey].push(blockIndex);
+    subjectProgress.points += points;
+    subjectProgress.correctAnswers += score;
+    subjectProgress.wrongAnswers += total - score;
+    progress.totalPoints += points;
+    progress.completedChallenges += 1;
+    progress.studyMinutes += 15;
+  }
+
+  subjectProgress.lastScore = { score, total, points: alreadyCompleted ? 0 : points, date: new Date().toISOString() };
+  saveProgress(progress);
+  syncSubjectProgress(slug, progress);
+  return { points: alreadyCompleted ? 0 : points, alreadyCompleted };
+}
+
+function subjectCompletion(slug) {
+  const progress = getProgress();
+  const subjectProgress = ensureSubjectProgress(progress, slug);
+  const totalBlocks = (challengeBlocks[slug]?.length || 0) + (reinforcementBlocks[slug]?.length || 0);
+  const completed = subjectProgress.completedBlocks.length + subjectProgress.completedReviewBlocks.length;
+  return Math.round((completed / Math.max(totalBlocks, 1)) * 100);
+}
+
+function renderDashboard() {
+  const dashboard = document.querySelector("[data-dashboard]");
+  if (!dashboard) return;
+
+  const progress = getProgress();
+  const studentName = userDisplayName(activeSession?.user);
+  const completedBlocks = Object.keys(subjects).reduce((total, slug) => {
+    const subjectProgress = ensureSubjectProgress(progress, slug);
+    return total + subjectProgress.completedBlocks.length + subjectProgress.completedReviewBlocks.length;
+  }, 0);
+  const totalBlocks = Object.keys(subjects).reduce((total, slug) => total + challengeBlocks[slug].length + reinforcementBlocks[slug].length, 0);
+  const general = totalBlocks ? Math.round((completedBlocks / totalBlocks) * 100) : 0;
+
+  setText("[data-student-name]", studentName);
+  setText("[data-total-points]", `${progress.totalPoints} pts`);
+  setText("[data-general-progress]", `${general}%`);
+  setText("[data-streak]", `${progress.streak} dia${progress.streak === 1 ? "" : "s"}`);
+  setText("[data-completed-challenges]", String(progress.completedChallenges));
+  setText("[data-study-hours]", `${Math.floor(progress.studyMinutes / 60)} h ${progress.studyMinutes % 60} min`);
+  setProgress("[data-general-bar]", general);
+  setProgress("[data-points-bar]", Math.min(progress.totalPoints / 10, 100));
+  setProgress("[data-streak-bar]", Math.min(progress.streak * 10, 100));
+  setProgress("[data-challenges-bar]", Math.min(progress.completedChallenges * 12, 100));
+  setProgress("[data-hours-bar]", Math.min(progress.studyMinutes / 3, 100));
+
+  Object.keys(subjects).forEach((slug) => {
+    const completion = subjectCompletion(slug);
+    setText(`[data-subject-progress="${slug}"]`, `${completion}% completado`);
+    setProgress(`[data-subject-bar="${slug}"]`, completion);
+  });
+}
+
+function renderProgressPage() {
+  const progressPage = document.querySelector("[data-progress-page]");
+  if (!progressPage) return;
+
+  const progress = getProgress();
+  const subjectEntries = Object.keys(subjects).map((slug) => [slug, subjectCompletion(slug)]);
+  const average = subjectEntries.length
+    ? Math.round(subjectEntries.reduce((total, [, value]) => total + value, 0) / subjectEntries.length)
+    : 0;
+  const level = Math.max(1, Math.floor(progress.totalPoints / 120) + 1);
+
+  setText("[data-level]", `Nivel ${level} - Explorador academico`);
+  setText("[data-progress-total]", `${average}%`);
+  setText("[data-points-total]", `${progress.totalPoints} pts`);
+  setText("[data-progress-streak]", `${progress.streak} dia${progress.streak === 1 ? "" : "s"}`);
+  setProgress("[data-level-bar]", Math.min((progress.totalPoints % 120) / 1.2, 100));
+  setProgress("[data-progress-total-bar]", average);
+  setProgress("[data-points-total-bar]", Math.min(progress.totalPoints / 10, 100));
+  setProgress("[data-progress-streak-bar]", Math.min(progress.streak * 10, 100));
+
+  subjectEntries.forEach(([slug, completion]) => {
+    const subjectProgress = ensureSubjectProgress(progress, slug);
+    setText(`[data-progress-copy="${slug}"]`, progressCopy(slug, subjectProgress));
+    setProgress(`[data-progress-bar="${slug}"]`, completion);
+  });
+}
+
+function progressCopy(slug, subjectProgress) {
+  const blocks = subjectProgress.completedBlocks.length + subjectProgress.completedReviewBlocks.length;
+  const total = challengeBlocks[slug].length + reinforcementBlocks[slug].length;
+  const diagnosis = subjectProgress.diagnosticScore
+    ? `Diagnostico ${subjectProgress.diagnosticScore.score}/${subjectProgress.diagnosticScore.total}.`
+    : "Diagnostico pendiente.";
+  return `${diagnosis} ${blocks}/${total} bloques de aprendizaje completados.`;
+}
+
+function questionFromRow(row) {
+  const answerIndex = { A: 0, B: 1, C: 2 }[String(row.correct_option || "").trim().toUpperCase()];
+  if (answerIndex === undefined) return null;
+  return {
+    type: "choice",
+    text: row.question_text,
+    options: [row.option_a, row.option_b, row.option_c],
+    answer: answerIndex,
+    explanation: row.explanation || ""
+  };
+}
+
+function buildBlocksFromQuestions(slug, questions, roundIndex) {
+  const size = 3;
+  const start = roundIndex === 0 ? 0 : 9;
+  const maxBlocks = roundIndex === 0 ? 3 : 2;
+  const labels = roundIndex === 0 ? ["Base", "Practica", "Integracion"] : ["Refuerzo", "Caso"];
+
+  return Array.from({ length: maxBlocks }, (_, index) => {
+    const blockQuestions = questions.slice(start + index * size, start + (index + 1) * size);
+    if (blockQuestions.length < size) return null;
+    return {
+      title: `${subjects[slug].short}: bloque ${index + 1}`,
+      label: labels[index] || `Bloque ${index + 1}`,
+      questions: blockQuestions
+    };
+  }).filter(Boolean);
+}
+
+async function hydrateChallengeQuestions() {
+  const challenge = document.querySelector("[data-challenge]");
+  const supabase = window.nexoSupabase;
+  if (!challenge || !supabase) return;
+
+  const slug = currentSubject();
+  const { data, error } = await supabase
+    .from("questions")
+    .select("career,subject,difficulty,question_text,option_a,option_b,option_c,correct_option,explanation,is_active")
+    .eq("is_active", true)
+    .in("subject", subjectNamesForSlug(slug))
+    .order("created_at", { ascending: true });
+
+  if (error || !Array.isArray(data)) return;
+
+  const remoteQuestions = data
+    .filter((row) => slugFromSubjectName(row.subject) === slug)
+    .map(questionFromRow)
+    .filter(Boolean);
+
+  if (remoteQuestions.length < 3) return;
+
+  const firstRound = buildBlocksFromQuestions(slug, remoteQuestions, 0);
+  const secondRound = buildBlocksFromQuestions(slug, remoteQuestions, 1);
+
+  if (firstRound.length) challengeBlocks[slug] = firstRound;
+  if (secondRound.length) reinforcementBlocks[slug] = secondRound;
+}
+
+function setText(selector, value) {
+  const node = document.querySelector(selector);
+  if (node) node.textContent = value;
+}
+
+function setProgress(selector, value) {
+  const node = document.querySelector(selector);
+  if (node) node.style.width = `${Math.max(0, Math.min(100, value))}%`;
+}
+
+function renderSubjectPage() {
+  const slug = currentSubject();
+  const subject = subjects[slug];
+  document.querySelectorAll("[data-subject-name]").forEach((node) => {
+    node.textContent = subject.name;
+  });
+  document.querySelectorAll("[data-subject-description]").forEach((node) => {
+    node.textContent = subject.description;
+  });
+  document.querySelectorAll("[data-subject-source]").forEach((node) => {
+    node.textContent = subject.source;
+  });
+  document.querySelectorAll("[data-bibliography-note]").forEach((node) => {
+    node.textContent = bibliographyNote;
+  });
+  document.querySelectorAll("[data-subject-link]").forEach((node) => {
+    const page = node.dataset.subjectLink;
+    node.setAttribute("href", subjectUrl(page, slug));
+  });
+}
+
+function renderDiagnostic() {
+  const form = document.querySelector("[data-diagnostic]");
+  if (!form) return;
+
+  const slug = currentSubject();
+  const subject = subjects[slug];
+  const list = document.querySelector("[data-question-list]");
+  const submitButton = form.querySelector('button[type="submit"]');
+  const exitButton = document.querySelector("[data-diagnostic-exit]");
+  if (list) list.innerHTML = subject.questions.map((question, index) => questionMarkup(question, index, "diagnostic")).join("");
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const score = scoreQuiz(form, subject.questions, "diagnostic");
+    const total = subject.questions.length;
+    const misses = diagnosticMisses(form, subject.questions, "diagnostic");
+    const result = document.querySelector("[data-result]");
+    if (result) {
+      const perfect = score === total;
+      const high = score >= Math.ceil(total * 0.8);
+      const message = perfect
+        ? `Excelente diagnostico en ${subject.name}: respondiste ${score}/${total} correctamente. Ya estas listo para pasar al desafio de practica.`
+        : high
+          ? `Muy buen resultado en ${subject.name}: ${score}/${total} correctas. Te conviene repasar los puntos finos y seguir con un desafio.`
+          : `${subject.diagnosisResult} Resultado: ${score}/${total} respuestas correctas.`;
+      result.textContent = message;
+      result.classList.add("show");
+    }
+    renderDiagnosticFeedback(subject.questions, misses);
+    storeDiagnosticResult(slug, score, total);
+    submitButton.disabled = true;
+    submitButton.textContent = "Diagnostico finalizado";
+    if (exitButton) exitButton.textContent = "Volver a la materia";
+    const actions = document.querySelector("[data-result-actions]");
+    if (actions) actions.classList.add("show");
+    result?.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
+
+function diagnosticMisses(scope, questions, prefix) {
+  return questions.reduce((misses, question, index) => {
+    const selected = scope.querySelector(`input[name="${prefix}-${index}"]:checked`);
+    const value = question.type === "truefalse" ? selected?.value === "true" : Number(selected?.value);
+    if (!selected || value !== question.answer) misses.push({ question, index, selected: selected?.value });
+    return misses;
+  }, []);
+}
+
+function renderDiagnosticFeedback(questions, misses) {
+  const feedback = document.querySelector("[data-diagnostic-feedback]");
+  if (!feedback) return;
+  const missedIndexes = new Set(misses.map((item) => item.index));
+  feedback.innerHTML = `
+    <h3>Revision del diagnostico</h3>
+    <div class="feedback-list">
+      ${questions.map((question, index) => {
+        const correct = !missedIndexes.has(index);
+        return `<div class="feedback-item ${correct ? "correct" : "wrong"}">
+          <strong>Pregunta ${index + 1}</strong>
+          <span>${correct ? "Correcta" : "A revisar"}</span>
+          <p>${question.text}</p>
+          <p><b>Respuesta correcta:</b> ${answerText(question)}</p>
+        </div>`;
+      }).join("")}
+    </div>
+    <p class="feedback-note">${misses.length ? "Te conviene repasar las preguntas marcadas con el Tutor IA o pasar al test diario para practicar con nuevos bloques." : "Completaste el diagnostico sin errores. Podes avanzar al test diario para sumar puntos."}</p>
+  `;
+  feedback.classList.add("show");
+}
+
+function answerText(question) {
+  if (question.type === "truefalse") return question.answer ? "Verdadero" : "Falso";
+  return question.options[question.answer];
+}
+
+function selectedAnswerText(scope, question, index, prefix) {
+  const selected = scope.querySelector(`input[name="${prefix}-${index}"]:checked`);
+  if (!selected) return "Sin responder";
+  if (question.type === "truefalse") return selected.value === "true" ? "Verdadero" : "Falso";
+  return question.options[Number(selected.value)] || "Sin responder";
+}
+
+function hasSelectedAnswer(scope, index, prefix) {
+  return Boolean(scope.querySelector(`input[name="${prefix}-${index}"]:checked`));
+}
+
+function selectedAnswerIsCorrect(scope, question, index, prefix) {
+  const selected = scope.querySelector(`input[name="${prefix}-${index}"]:checked`);
+  if (!selected) return false;
+  const value = question.type === "truefalse" ? selected.value === "true" : Number(selected.value);
+  return value === question.answer;
+}
+
+function firstUnansweredQuestion(scope, questions, prefix) {
+  return questions.findIndex((_, index) => !hasSelectedAnswer(scope, index, prefix));
+}
+
+function renderAiErrorHelp(scope, questions, prefix, subjectName) {
+  scope.querySelectorAll(".ai-error-help").forEach((node) => node.remove());
+  const renderedHelp = [];
+
+  questions.forEach((question, index) => {
+    const questionNode = scope.querySelector(`[data-question-index="${index}"]`);
+    if (!questionNode || !hasSelectedAnswer(scope, index, prefix) || selectedAnswerIsCorrect(scope, question, index, prefix)) return;
+
+    const help = document.createElement("div");
+    help.className = "ai-error-help";
+    help.innerHTML = `
+      <button class="btn btn-secondary" type="button" data-ai-error-button>Explicame mi error con IA</button>
+      <div class="ai-error-response" data-ai-error-response></div>
+    `;
+    questionNode.appendChild(help);
+    renderedHelp.push(help);
+
+    const button = help.querySelector("[data-ai-error-button]");
+    const response = help.querySelector("[data-ai-error-response]");
+
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      button.textContent = "Generando explicacion...";
+      response.textContent = "";
+      response.classList.remove("show", "error");
+
+      try {
+        const result = await fetch("/api/explain-error", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subject: subjectName,
+            question_text: question.text,
+            selected_answer_text: selectedAnswerText(scope, question, index, prefix),
+            correct_answer_text: answerText(question),
+            official_explanation: question.explanation || answerText(question)
+          })
+        });
+        const data = await result.json();
+        if (!result.ok || !data.explanation) throw new Error(data.error || "No se pudo generar la explicacion.");
+        response.textContent = data.explanation;
+        response.classList.add("show");
+        button.textContent = "Explicacion generada";
+      } catch {
+        response.textContent = "No se pudo generar la explicacion ahora. Revisa la explicacion oficial e intenta nuevamente.";
+        response.classList.add("show", "error");
+        button.disabled = false;
+        button.textContent = "Reintentar explicacion con IA";
+      }
+    });
+  });
+
+  return renderedHelp;
+}
+
+function renderChallenge() {
+  const challenge = document.querySelector("[data-challenge]");
+  if (!challenge) return;
+
+  const slug = currentSubject();
+  const subject = subjects[slug];
+  const rounds = [challengeBlocks[slug] || [], reinforcementBlocks[slug] || []];
+  const progress = getProgress();
+  const subjectProgress = ensureSubjectProgress(progress, slug);
+  let roundIndex = Math.min(subjectProgress.challengeRound || 0, rounds.length - 1);
+  let blocks = rounds[roundIndex];
+  let completedKey = roundIndex === 0 ? "completedBlocks" : "completedReviewBlocks";
+  let completedBlocks = subjectProgress[completedKey];
+  let blockIndex = Math.min(completedBlocks.length, blocks.length - 1);
+  let activeBlock = blocks[blockIndex];
+  let nextMode = "block";
+  document.querySelector("[data-challenge-title]").textContent = subject.challenge.title;
+  document.querySelector("[data-challenge-prompt]").textContent = subject.challenge.prompt;
+  const list = document.querySelector("[data-challenge-list]");
+  const map = document.querySelector("[data-learning-map]");
+  const blockName = document.querySelector("[data-block-name]");
+  const blockProgress = document.querySelector("[data-block-progress]");
+  const livePoints = document.querySelector("[data-live-points]");
+  const pomodoro = initPomodoro();
+
+  const renderMap = () => {
+    if (!map) return;
+    map.innerHTML = blocks.map((block, index) => {
+      const done = completedBlocks.includes(index);
+      const active = index === blockIndex && !done;
+      const locked = index > completedBlocks.length;
+      const className = ["map-node", done ? "done" : "", active ? "active" : "", locked ? "locked" : ""].filter(Boolean).join(" ");
+      const state = done ? "Completado" : active ? "En curso" : locked ? "Bloqueado" : "Disponible";
+      return `<div class="${className}"><span>${index + 1}</span><div><strong>${block.label}</strong><small>${state}</small></div></div>`;
+    }).join("");
+  };
+
+  const renderBlock = () => {
+    blocks = rounds[roundIndex];
+    completedKey = roundIndex === 0 ? "completedBlocks" : "completedReviewBlocks";
+    completedBlocks = subjectProgress[completedKey];
+    activeBlock = blocks[blockIndex];
+    list.innerHTML = activeBlock.questions.map((question, index) => questionMarkup(question, index, "challenge")).join("");
+    if (blockName) blockName.textContent = activeBlock.title;
+    if (blockProgress) blockProgress.textContent = `Ronda ${roundIndex + 1} - Bloque ${blockIndex + 1} de ${blocks.length}`;
+    if (livePoints) livePoints.textContent = `${getProgress().totalPoints} pts`;
+    renderMap();
+  };
+  renderBlock();
+
+  const finishButton = document.querySelector("[data-finish-challenge]");
+  const nextButton = document.querySelector("[data-next-challenge]");
+  const reward = document.querySelector("[data-reward]");
+
+  if (completedBlocks.length >= blocks.length && roundIndex === rounds.length - 1) {
+    finishButton.textContent = "Recorrido completado";
+    finishButton.disabled = true;
+    reward.textContent = "Completaste la segunda ronda de aprendizaje. El recorrido queda finalizado con tus puntos acumulados guardados.";
+    reward.classList.add("show");
+  } else if (completedBlocks.length >= blocks.length && roundIndex === 0) {
+    nextMode = "round";
+    finishButton.textContent = "Primera ronda completada";
+    finishButton.disabled = true;
+    nextButton.textContent = "Iniciar segunda ronda";
+    nextButton.classList.add("show");
+    reward.textContent = `Primera ronda completa. Mantenes ${getProgress().totalPoints} pts acumulados y podes iniciar una nueva seccion con preguntas distintas.`;
+    reward.classList.add("show");
+  }
+
+  finishButton.addEventListener("click", () => {
+    const unansweredIndex = firstUnansweredQuestion(challenge, activeBlock.questions, "challenge");
+    if (unansweredIndex !== -1) {
+      const unansweredNode = challenge.querySelector(`[data-question-index="${unansweredIndex}"]`);
+      reward.textContent = `Te falta responder la pregunta ${unansweredIndex + 1} antes de finalizar el bloque.`;
+      reward.classList.add("show");
+      unansweredNode?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
+    const score = scoreQuiz(challenge, activeBlock.questions, "challenge");
+    const total = activeBlock.questions.length;
+    const award = completeChallengeBlock(slug, roundIndex, blockIndex, score, total);
+    const aiErrorHelp = renderAiErrorHelp(challenge, activeBlock.questions, "challenge", subject.name);
+    const updatedProgress = getProgress();
+    const updatedSubject = ensureSubjectProgress(updatedProgress, slug);
+    subjectProgress.completedBlocks = updatedSubject.completedBlocks;
+    subjectProgress.completedReviewBlocks = updatedSubject.completedReviewBlocks;
+    completedBlocks = subjectProgress[completedKey];
+    const hasNextBlock = completedBlocks.length < blocks.length;
+    const hasSecondRound = roundIndex === 0 && reinforcementBlocks[slug]?.length;
+    const pointsText = award.alreadyCompleted
+      ? "Este bloque ya estaba completado; no se duplicaron puntos."
+      : `Sumaste +${award.points} puntos.`;
+    reward.textContent = `${activeBlock.title}: ${score}/${total} respuestas correctas. ${pointsText}`;
+    if (aiErrorHelp.length) {
+      reward.textContent += " Revisa el boton de IA debajo de cada pregunta incorrecta.";
+    }
+    reward.classList.add("show");
+    pomodoro.stop();
+    finishButton.textContent = "Bloque completado";
+    finishButton.disabled = true;
+    if (livePoints) livePoints.textContent = `${updatedProgress.totalPoints} pts`;
+    renderMap();
+    if (hasNextBlock) {
+      nextMode = "block";
+      nextButton.textContent = "Continuar al siguiente bloque";
+      nextButton.classList.add("show");
+    } else if (hasSecondRound) {
+      nextMode = "round";
+      nextButton.textContent = "Iniciar segunda ronda";
+      nextButton.classList.add("show");
+      reward.textContent += ` Primera ronda completa. Tus ${updatedProgress.totalPoints} pts quedan acumulados para la nueva seccion.`;
+    } else {
+      nextButton.classList.remove("show");
+      reward.textContent += " Segunda ronda completada. Recorrido del desafio finalizado.";
+    }
+    const firstAiButton = aiErrorHelp[0]?.querySelector("[data-ai-error-button]");
+    (firstAiButton || reward).scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  nextButton.addEventListener("click", () => {
+    if (nextMode === "round") {
+      roundIndex = 1;
+      subjectProgress.challengeRound = 1;
+      const progressToSave = getProgress();
+      ensureSubjectProgress(progressToSave, slug).challengeRound = 1;
+      saveProgress(progressToSave);
+      blockIndex = 0;
+    } else {
+      blockIndex = Math.min(blockIndex + 1, blocks.length - 1);
+    }
+    renderBlock();
+    pomodoro.reset();
+    reward.classList.remove("show");
+    nextButton.classList.remove("show");
+    finishButton.disabled = false;
+    finishButton.textContent = "Finalizar bloque";
+    list.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+function questionMarkup(question, index, prefix) {
+  if (question.type === "truefalse") {
+    return `
+      <div class="question" data-question-index="${index}">
+        <h3>Pregunta ${index + 1}: ${question.text}</h3>
+        <div class="options">
+          <label class="option"><input type="radio" name="${prefix}-${index}" value="true" required> Verdadero</label>
+          <label class="option"><input type="radio" name="${prefix}-${index}" value="false" required> Falso</label>
+        </div>
+      </div>`;
+  }
+
+  return `
+    <div class="question" data-question-index="${index}">
+      <h3>Pregunta ${index + 1}: ${question.text}</h3>
+      <div class="options">
+        ${question.options.map((option, optionIndex) => `<label class="option"><input type="radio" name="${prefix}-${index}" value="${optionIndex}" required> ${option}</label>`).join("")}
+      </div>
+    </div>`;
+}
+
+function scoreQuiz(scope, questions, prefix) {
+  return questions.reduce((total, question, index) => {
+    const selected = scope.querySelector(`input[name="${prefix}-${index}"]:checked`);
+    if (!selected) return total;
+    const value = question.type === "truefalse" ? selected.value === "true" : Number(selected.value);
+    return value === question.answer ? total + 1 : total;
+  }, 0);
+}
+
+function initPomodoro() {
+  const start = document.querySelector("[data-pomodoro-start]");
+  const reset = document.querySelector("[data-pomodoro-reset]");
+  const display = document.querySelector("[data-pomodoro-display]");
+  let seconds = 15 * 60;
+  let timer = null;
+
+  const paint = () => {
+    const min = String(Math.floor(seconds / 60)).padStart(2, "0");
+    const sec = String(seconds % 60).padStart(2, "0");
+    display.textContent = `${min}:${sec}`;
+  };
+
+  start.addEventListener("click", () => {
+    if (timer) return;
+    start.textContent = "En curso";
+    timer = setInterval(() => {
+      seconds = Math.max(0, seconds - 1);
+      paint();
+      if (seconds === 0) {
+        clearInterval(timer);
+        timer = null;
+        start.textContent = "Reiniciar foco";
+      }
+    }, 1000);
+  });
+
+  reset.addEventListener("click", () => {
+    resetTimer();
+  });
+
+  const stopTimer = () => {
+    clearInterval(timer);
+    timer = null;
+    start.textContent = seconds === 0 ? "Reiniciar foco" : "Continuar foco";
+  };
+
+  const resetTimer = () => {
+    clearInterval(timer);
+    timer = null;
+    seconds = 15 * 60;
+    start.textContent = "Iniciar foco";
+    paint();
+  };
+
+  paint();
+  return { stop: stopTimer, reset: resetTimer };
+}
+
+function renderTutor() {
+  const chatForm = document.querySelector("[data-chat-form]");
+  if (!chatForm) return;
+
+  const input = chatForm.querySelector("input");
+  const chat = document.querySelector("[data-chat]");
+  const slug = currentSubject();
+  const subject = subjects[slug];
+  document.querySelector("[data-tutor-intro]").textContent = `Estoy usando como base ${subject.source} y la bibliografia actualizada de la Facultad de Ciencias Economicas.`;
+
+  chatForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!input.value.trim()) return;
+
+    const question = input.value.trim();
+    appendBubble(chat, question, "user");
+    appendBubble(chat, tutorAnswer(question, subject), "ai");
+    input.value = "";
+  });
+}
+
+function tutorAnswer(question, subject) {
+  const normalized = question.toLowerCase();
+  const match = subject.tutor.find((item) => item.keywords.some((keyword) => normalized.includes(keyword)));
+  if (match) return match.answer;
+
+  return `Sobre ${subject.name}, puedo ayudarte con los temas principales del resumen: ${subject.description}. Proba preguntar por un concepto puntual para recibir una explicacion mas precisa.`;
+}
+
+function appendBubble(chat, text, type) {
+  const bubble = document.createElement("div");
+  bubble.className = `bubble ${type}`;
+  bubble.textContent = text;
+  chat.appendChild(bubble);
+}

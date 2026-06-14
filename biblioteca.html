@@ -1,0 +1,32 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Biblioteca | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="materia.html?materia=administracion">Materia</a><a class="active" href="biblioteca.html">Biblioteca</a><a href="tutor.html?materia=administracion">Tutor IA</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesion</button></div>
+    </nav>
+  </header>
+  <main class="container">
+    <section class="page-head"><h1>Biblioteca academica</h1><p>Recursos para acompanar el ingreso a Licenciatura en Administracion, basados en bibliografia actualizada utilizada por la Facultad de Ciencias Economicas.</p></section>
+    <section class="grid grid-2">
+      <article class="card"><span class="career-code">R</span><h3>Resumenes</h3><p>Sintesis de organizaciones, administracion, eficiencia y eficacia.</p><div class="library-item"><strong>Unidad 1 - Organizaciones</strong><span class="badge">Disponible</span></div></article>
+      <article class="card"><span class="career-code">B</span><h3>Bibliografia</h3><p>Lecturas introductorias y material sugerido por tema.</p><div class="library-item"><strong>Gestion y teoria administrativa</strong><span class="badge">Lectura</span></div></article>
+      <article class="card"><span class="career-code">E</span><h3>Examenes de practica</h3><p>Modelos de preguntas para ensayar antes de evaluaciones.</p><div class="library-item"><strong>Cuestionario inicial</strong><span class="badge">Practica</span></div></article>
+      <article class="card"><span class="career-code">G</span><h3>Guias de ejercicios</h3><p>Actividades de aplicacion con casos breves.</p><div class="library-item"><strong>Caso empresa de servicios</strong><span class="badge">Guia</span></div></article>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Material de apoyo centralizado.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+

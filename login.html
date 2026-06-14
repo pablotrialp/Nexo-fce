@@ -1,0 +1,45 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesion | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="index.html">Inicio</a><a href="registro.html">Registro</a></div>
+    </nav>
+  </header>
+  <main class="container auth-shell">
+    <section class="card auth-card">
+      <span class="eyebrow">Acceso estudiante</span>
+      <h1>Iniciar sesion</h1>
+      <form class="form" data-auth-form data-auth-mode="login">
+        <div class="field"><label for="email">Email</label><input id="email" type="email" required placeholder="tu@email.com"></div>
+        <div class="field"><label for="password">Contrasena</label><input id="password" type="password" required placeholder="********"></div>
+        <button class="btn btn-primary" type="submit">Ingresar</button>
+        <a class="auth-link" href="#" data-password-reset-link>Olvide mi contrasena</a>
+      </form>
+      <form class="form auth-panel" data-password-reset-request hidden>
+        <div class="field"><label for="reset-email">Email</label><input id="reset-email" type="email" required placeholder="tu@email.com"></div>
+        <button class="btn btn-primary" type="submit">Enviar enlace de recuperacion</button>
+        <button class="btn btn-ghost" type="button" data-password-reset-cancel>Cancelar</button>
+      </form>
+      <form class="form" data-reset-password-form hidden>
+        <div class="field"><label for="new-password">Nueva contrasena</label><input id="new-password" type="password" required minlength="8" placeholder="Minimo 8 caracteres"></div>
+        <div class="field"><label for="confirm-password">Confirmar contrasena</label><input id="confirm-password" type="password" required minlength="8" placeholder="Repeti tu contrasena"></div>
+        <button class="btn btn-primary" type="submit">Actualizar contrasena</button>
+      </form>
+      <div class="message auth-message" data-message>Ingreso correcto. Redirigiendo...</div>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Acceso academico seguro.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+

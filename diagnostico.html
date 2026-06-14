@@ -1,0 +1,40 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diagnostico | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="materia.html?materia=administracion" data-subject-link="materia.html">Materia</a><a href="desafio.html?materia=administracion" data-subject-link="desafio.html">Desafio</a><a href="tutor.html?materia=administracion" data-subject-link="tutor.html">Tutor IA</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesion</button></div>
+    </nav>
+  </header>
+  <main class="container">
+    <section class="page-head"><h1>Diagnostico inicial</h1><p>Test de opciones para detectar conocimientos de base en <strong data-subject-name>Administracion I</strong>. <span data-bibliography-note>Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas.</span></p></section>
+    <form class="card" data-diagnostic>
+      <div data-question-list></div>
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Finalizar diagnostico</button>
+        <a class="btn btn-secondary" href="materia.html?materia=administracion" data-subject-link="materia.html" data-diagnostic-exit>Cancelar diagnostico</a>
+      </div>
+      <div class="message" data-result></div>
+      <div class="diagnostic-feedback" data-diagnostic-feedback></div>
+      <div class="result-actions" data-result-actions>
+        <a class="btn btn-primary" href="desafio.html?materia=administracion" data-subject-link="desafio.html">Practicar con test diario</a>
+        <a class="btn btn-secondary" href="tutor.html?materia=administracion" data-subject-link="tutor.html">Repasar con Tutor IA</a>
+        <a class="btn btn-secondary" href="materia.html?materia=administracion" data-subject-link="materia.html">Volver a la materia</a>
+      </div>
+    </form>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Diagnosticos personalizados.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+

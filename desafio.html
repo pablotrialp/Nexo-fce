@@ -1,0 +1,54 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Desafio diario | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="materia.html?materia=administracion" data-subject-link="materia.html">Materia</a><a href="diagnostico.html?materia=administracion" data-subject-link="diagnostico.html">Diagnostico</a><a href="progreso.html">Progreso</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesion</button></div>
+    </nav>
+  </header>
+  <main class="container">
+    <section class="page-head"><h1>Desafio de hoy</h1><p>Recorrido por bloques de practica para <strong data-subject-name>Administracion I</strong>. <span data-bibliography-note>Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas.</span></p></section>
+    <section class="card challenge-card" data-challenge>
+      <div class="challenge-layout">
+        <aside class="learning-circuit">
+          <small>Circuito de avance</small>
+          <strong data-live-points>0 pts</strong>
+          <div class="learning-map" data-learning-map></div>
+        </aside>
+        <div class="challenge-main">
+          <span class="eyebrow" data-subject-source>Resumen de Administracion I</span>
+          <h2 data-challenge-title>Eficiencia, eficacia y objetivos</h2>
+          <div class="block-status"><span data-block-progress>Bloque 1 de 3</span><strong data-block-name>Conceptos base</strong></div>
+          <p data-challenge-prompt>Practica con preguntas rapidas de la materia.</p>
+          <div class="pomodoro" aria-label="Temporizador de estudio">
+            <div>
+              <small>Sesion de foco</small>
+              <strong data-pomodoro-display>15:00</strong>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary" type="button" data-pomodoro-start>Iniciar foco</button>
+              <button class="btn btn-secondary" type="button" data-pomodoro-reset>Reiniciar</button>
+            </div>
+          </div>
+          <div data-challenge-list></div>
+          <div class="actions"><button class="btn btn-primary" type="button" data-finish-challenge>Finalizar bloque</button><button class="btn btn-ghost next-challenge" type="button" data-next-challenge>Continuar al siguiente bloque</button><a class="btn btn-secondary" href="materia.html?materia=administracion" data-subject-link="materia.html">Volver a materia</a></div>
+          <div class="reward" data-reward></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Practica diaria y recompensas.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
