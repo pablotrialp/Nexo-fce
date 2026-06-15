@@ -147,7 +147,7 @@ const subjects = {
 };
 
 const bibliographyNote = "Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas para las materias iniciales.";
-const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "tutor.html", "progreso.html"];
+const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "tutor.html", "progreso.html"];
 let activeSession = null;
 const progressKey = "nexoProgress";
 
@@ -460,6 +460,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderChallenge();
   renderTutor();
   renderProgressPage();
+  initCultureGuide();
 });
 
 function currentSubject() {
@@ -1569,4 +1570,26 @@ function appendBubble(chat, text, type) {
   bubble.className = `bubble ${type}`;
   bubble.textContent = text;
   chat.appendChild(bubble);
+}
+
+async function initCultureGuide() {
+  const guide = document.querySelector("[data-culture-guide]");
+  if (!guide) return;
+
+  const pdfPath = "assets/cultura-universitaria.pdf";
+  const viewer = guide.querySelector("[data-pdf-viewer]");
+  const placeholder = guide.querySelector("[data-pdf-placeholder]");
+  const status = guide.querySelector("[data-pdf-status]");
+
+  try {
+    const response = await fetch(pdfPath, { method: "HEAD", cache: "no-store" });
+    if (!response.ok) throw new Error("PDF pendiente");
+    if (viewer) viewer.hidden = false;
+    if (placeholder) placeholder.hidden = true;
+    if (status) status.textContent = "La guia esta disponible para visualizar online o descargar.";
+  } catch {
+    if (viewer) viewer.hidden = true;
+    if (placeholder) placeholder.hidden = false;
+    if (status) status.textContent = "El PDF aun no esta cargado. El enlace queda preparado para assets/cultura-universitaria.pdf.";
+  }
 }

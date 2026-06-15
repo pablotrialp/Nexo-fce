@@ -951,6 +951,36 @@ button:disabled {
     var(--white);
 }
 
+.culture-grid .card p + p {
+  margin-top: -4px;
+}
+
+.guide-card {
+  display: grid;
+  gap: 14px;
+}
+
+.guide-card p {
+  margin-bottom: 0;
+}
+
+.pdf-placeholder {
+  border: 1px dashed rgba(29, 111, 210, 0.42);
+  border-radius: 8px;
+  padding: 18px;
+  color: var(--muted);
+  background: #f8fbfe;
+  font-weight: 800;
+}
+
+.pdf-viewer {
+  width: 100%;
+  min-height: 620px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+}
+
 .footer {
   margin-top: 40px;
   padding: 26px 0;

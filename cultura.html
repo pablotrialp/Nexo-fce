@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cultura Universitaria | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="materia.html?materia=administracion">Materia</a><a href="biblioteca.html">Biblioteca</a><a class="active" href="cultura.html">Cultura Universitaria</a><a href="tutor.html?materia=administracion">Tutor IA</a><a href="progreso.html">Progreso</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesion</button></div>
+    </nav>
+  </header>
+  <main class="container">
+    <section class="page-head">
+      <h1>Cultura Universitaria</h1>
+      <p>Una guia simple para entender las primeras palabras, tramites y decisiones del ingreso a FCE.</p>
+    </section>
+
+    <section class="grid grid-2 culture-grid">
+      <article class="card">
+        <small>Sistema academico</small>
+        <h2>Que es el SIU Guarani</h2>
+        <p>El SIU Guarani es el sistema donde se gestionan datos academicos de estudiantes: inscripciones, cursadas, examenes, historia academica y constancias.</p>
+        <p>Sirve para anotarte a materias y finales, consultar regularidades, revisar notas cargadas y seguir tu situacion administrativa dentro de la universidad.</p>
+      </article>
+      <article class="card">
+        <small>Plan de estudios</small>
+        <h2>Correlatividades</h2>
+        <p>Las correlatividades son requisitos entre materias. Indican que materia tenes que tener cursada, regularizada o aprobada antes de poder cursar o rendir otra.</p>
+        <p>Conviene revisarlas antes de armar el cuatrimestre para evitar anotarte a una materia que despues no puedas sostener academicamente.</p>
+      </article>
+      <article class="card">
+        <small>Evaluaciones</small>
+        <h2>Cursada, parcial, final y promocion</h2>
+        <p>La cursada es el recorrido de clases y actividades de una materia. Los parciales son evaluaciones durante ese recorrido.</p>
+        <p>El final es una evaluacion integradora que suele rendirse cuando la materia queda regular. La promocion permite aprobar sin final si cumplis condiciones especificas de notas, asistencia o trabajos.</p>
+      </article>
+      <article class="card">
+        <small>Primer cuatrimestre</small>
+        <h2>Como organizarse</h2>
+        <p>Usa un calendario semanal con clases, lecturas, practicas y fechas de entrega. Reserva bloques cortos de repaso despues de cada clase para no acumular todo antes del parcial.</p>
+        <p>Prioriza entender consignas, guardar comprobantes de inscripcion y consultar temprano cuando una correlatividad, aula o fecha no quede clara.</p>
+      </article>
+    </section>
+
+    <section class="section compact-section">
+      <h2 class="section-title">Glosario breve para ingresantes FCE</h2>
+      <div class="grid grid-3">
+        <article class="card"><h3>Regularidad</h3><p>Condicion que obtenes al cumplir los requisitos de cursada. Te permite rendir final durante el plazo definido por la facultad.</p></article>
+        <article class="card"><h3>Comision</h3><p>Grupo, horario y docente asignado para cursar una materia.</p></article>
+        <article class="card"><h3>Acta</h3><p>Registro oficial donde se cargan notas de cursadas, promociones o examenes finales.</p></article>
+        <article class="card"><h3>Mesa de final</h3><p>Fecha habilitada para rendir el examen final de una materia.</p></article>
+        <article class="card"><h3>Equivalencia</h3><p>Reconocimiento academico de una materia aprobada previamente en otra carrera o institucion.</p></article>
+        <article class="card"><h3>Centro de estudiantes</h3><p>Espacio de representacion estudiantil que puede orientar sobre tramites, materiales y vida universitaria.</p></article>
+      </div>
+    </section>
+
+    <section class="section compact-section">
+      <article class="card guide-card" data-culture-guide>
+        <small>Guia descargable</small>
+        <h2>PDF Cultura Universitaria</h2>
+        <p data-pdf-status>El archivo esperado es assets/cultura-universitaria.pdf. Si todavia no fue cargado, este modulo queda preparado para publicarlo sin cambiar la pagina.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="assets/cultura-universitaria.pdf" download>Descargar PDF</a>
+          <a class="btn btn-secondary" href="assets/cultura-universitaria.pdf" target="_blank" rel="noopener" data-pdf-open>Ver guia</a>
+        </div>
+        <div class="pdf-placeholder" data-pdf-placeholder>Placeholder: cuando el PDF exista en la carpeta assets/, se mostrara aca mismo para consulta directa.</div>
+        <iframe class="pdf-viewer" src="assets/cultura-universitaria.pdf" title="Guia Cultura Universitaria" data-pdf-viewer hidden></iframe>
+      </article>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Cultura universitaria para el ingreso.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
