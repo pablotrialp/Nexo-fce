@@ -445,6 +445,7 @@ const reinforcementBlocks = {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
+  if (redirectPasswordRecoveryToLogin()) return;
   const canContinue = await protectPage();
   if (!canContinue) return;
   initAuthForms();
@@ -557,6 +558,7 @@ async function initPasswordReset() {
   const message = document.querySelector("[data-message]");
   const supabase = window.nexoSupabase;
   const isResetFlow = isPasswordRecoveryUrl();
+  const hasRecoveryError = hasPasswordRecoveryError();
 
   if (resetLink) {
     resetLink.addEventListener("click", (event) => {
@@ -612,7 +614,12 @@ async function initPasswordReset() {
     });
   }
 
-  if (isResetFlow && resetForm && authForm) {
+  if (hasRecoveryError) {
+    if (authForm) authForm.hidden = false;
+    if (resetRequestForm) resetRequestForm.hidden = true;
+    if (resetForm) resetForm.hidden = true;
+    showAuthMessage(message, "El enlace de recuperación venció o ya fue utilizado. Solicitá uno nuevo.", true);
+  } else if (isResetFlow && resetForm && authForm) {
     authForm.hidden = true;
     if (resetRequestForm) resetRequestForm.hidden = true;
     resetForm.hidden = true;
@@ -622,7 +629,7 @@ async function initPasswordReset() {
       activeSession = recoverySession;
       resetForm.hidden = false;
     } else {
-      showAuthMessage(message, "El enlace de recuperación venció o no es válido. Solicitá uno nuevo.", true);
+      showAuthMessage(message, "El enlace de recuperación venció o ya fue utilizado. Solicitá uno nuevo.", true);
       authForm.hidden = false;
     }
   } else {
@@ -650,7 +657,7 @@ async function initPasswordReset() {
 
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData.session) {
-      showAuthMessage(message, "El enlace de recuperación venció o no es válido. Solicitá uno nuevo.", true);
+      showAuthMessage(message, "El enlace de recuperación venció o ya fue utilizado. Solicitá uno nuevo.", true);
       resetForm.hidden = true;
       if (authForm) authForm.hidden = false;
       return;
@@ -669,17 +676,72 @@ async function initPasswordReset() {
   });
 }
 
+function currentPageName() {
+  return window.location.pathname.split("/").pop() || "index.html";
+}
+
+function queryParams() {
+  return new URLSearchParams(window.location.search);
+}
+
+function hashParams() {
+  return new URLSearchParams(window.location.hash.replace(/^#/, ""));
+}
+
+function isRecoveryHash() {
+  const hash = hashParams();
+  return hash.get("type") === "recovery" || (Boolean(hash.get("access_token")) && hash.get("type") === "recovery");
+}
+
+function hasPasswordRecoveryError() {
+  const query = queryParams();
+  const hash = hashParams();
+  const hasErrorDescription = Boolean(query.get("error_description") || hash.get("error_description"));
+  const values = [
+    query.get("error"),
+    query.get("error_code"),
+    query.get("error_description"),
+    hash.get("error"),
+    hash.get("error_code"),
+    hash.get("error_description")
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  return hasErrorDescription || values.includes("access_denied") || values.includes("otp_expired");
+}
+
+function recoveryRedirectHash() {
+  if (window.location.hash) return window.location.hash;
+
+  const query = queryParams();
+  const params = new URLSearchParams();
+  ["error", "error_code", "error_description", "type"].forEach((key) => {
+    const value = query.get(key);
+    if (value) params.set(key, value);
+  });
+
+  const serialized = params.toString();
+  return serialized ? `#${serialized}` : "";
+}
+
+function redirectPasswordRecoveryToLogin() {
+  if (currentPageName() === "login.html") return false;
+  if (!isRecoveryHash() && !hasPasswordRecoveryError()) return false;
+
+  window.location.href = `login.html?reset=password${recoveryRedirectHash()}`;
+  return true;
+}
+
 function isPasswordRecoveryUrl() {
-  const query = new URLSearchParams(window.location.search);
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  return query.get("reset") === "password" || query.get("type") === "recovery" || hash.get("type") === "recovery" || Boolean(hash.get("access_token") || hash.get("refresh_token") || query.get("code"));
+  const query = queryParams();
+  const hash = hashParams();
+  return query.get("reset") === "password" || query.get("type") === "recovery" || hash.get("type") === "recovery" || Boolean(query.get("code"));
 }
 
 async function createRecoverySession(supabase) {
   if (!supabase) return null;
 
-  const query = new URLSearchParams(window.location.search);
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const query = queryParams();
+  const hash = hashParams();
   const code = query.get("code");
   const accessToken = hash.get("access_token");
   const refreshToken = hash.get("refresh_token");
@@ -1138,6 +1200,15 @@ function setText(selector, value) {
   if (node) node.textContent = value;
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function setProgress(selector, value) {
   const node = document.querySelector(selector);
   if (node) node.style.width = `${Math.max(0, Math.min(100, value))}%`;
@@ -1288,9 +1359,16 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
       response.classList.remove("show", "error");
 
       try {
+        const { data: sessionData } = await window.nexoSupabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+        if (!accessToken) throw new Error("Tenes que iniciar sesion para usar el Tutor IA.");
+
         const result = await fetch("/api/explain-error", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify({
             subject: subjectName,
             question_text: question.text,
@@ -1300,12 +1378,26 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
           })
         });
         const data = await result.json();
+        if (data.limitReached) {
+          response.innerHTML = `
+            <p>${escapeHtml(data.message)}</p>
+            <a class="btn btn-primary" href="${data.upgradeUrl}" target="_blank" rel="noopener">Activar Premium</a>
+          `;
+          response.classList.add("show");
+          button.textContent = "Limite gratuito alcanzado";
+          return;
+        }
         if (!result.ok || !data.explanation) throw new Error(data.error || "No se pudo generar la explicacion.");
-        response.textContent = data.explanation;
+        const remainingCopy = typeof data.remainingUses === "number"
+          ? `<p class="ai-usage-note">Te quedan ${data.remainingUses} explicaciones IA gratuitas.</p>`
+          : data.isPremium
+            ? '<p class="ai-usage-note">NEXO Premium activo.</p>'
+            : "";
+        response.innerHTML = `<p>${escapeHtml(data.explanation)}</p>${remainingCopy}`;
         response.classList.add("show");
         button.textContent = "Explicacion generada";
-      } catch {
-        response.textContent = "No se pudo generar la explicacion ahora. Revisa la explicacion oficial e intenta nuevamente.";
+      } catch (error) {
+        response.textContent = error?.message || "No se pudo generar la explicacion ahora. Revisa la explicacion oficial e intenta nuevamente.";
         response.classList.add("show", "error");
         button.disabled = false;
         button.textContent = "Reintentar explicacion con IA";
