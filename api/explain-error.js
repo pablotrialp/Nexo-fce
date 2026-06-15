@@ -1,4 +1,5 @@
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const OPENAI_TIMEOUT_MS = 35000;
 
 function loadLocalEnv(name) {
   if (process.env[name]) return process.env[name];
@@ -53,48 +54,53 @@ module.exports = async function explainError(req, res) {
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
     const subject = cleanText(body.subject, 120);
-    const question = cleanText(body.question_text || body.question, 1000);
-    const selectedAnswer = cleanText(body.selected_answer_text || body.selectedAnswer, 600);
-    const correctAnswer = cleanText(body.correct_answer_text || body.correctAnswer, 600);
-    const officialExplanation = cleanText(body.official_explanation || body.officialExplanation, 1200);
+    const question = cleanText(body.question_text || body.question, 700);
+    const selectedAnswer = cleanText(body.selected_answer_text || body.selectedAnswer, 300);
+    const correctAnswer = cleanText(body.correct_answer_text || body.correctAnswer, 300);
+    const officialExplanation = cleanText(body.official_explanation || body.officialExplanation, 700);
 
     if (!subject || !question || !selectedAnswer || !correctAnswer || !officialExplanation) {
       sendJson(res, 400, { error: "Faltan datos para explicar el error." });
       return;
     }
 
-    const openAiRequest = fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model,
-        max_output_tokens: 220,
-        input: [
-          {
-            role: "system",
-            content: "Sos un tutor academico de FCE para estudiantes ingresantes. Explica errores con tono claro y pedagogico. No inventes contenido fuera de la explicacion oficial. Responde en espanol rioplatense neutro, en maximo 120 palabras."
-          },
-          {
-            role: "user",
-            content: [
-              `Materia: ${subject}`,
-              `Pregunta: ${question}`,
-              `Respuesta elegida: ${selectedAnswer}`,
-              `Respuesta correcta: ${correctAnswer}`,
-              `Explicacion oficial: ${officialExplanation}`,
-              "Explicame brevemente por que la respuesta elegida es incorrecta y como reconocer la correcta."
-            ].join("\n")
-          }
-        ]
-      })
-    });
-    const timeout = new Promise((_, reject) => {
-      setTimeout(() => reject(Object.assign(new Error("OpenAI timeout"), { name: "OpenAITimeout" })), 20000);
-    });
-    const response = await Promise.race([openAiRequest, timeout]);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+
+    let response;
+    try {
+      response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          max_output_tokens: 140,
+          input: [
+            {
+              role: "system",
+              content: "Sos tutor academico FCE. Explica directo, sin introducciones largas. Usa solo la explicacion oficial. Maximo 80 palabras."
+            },
+            {
+              role: "user",
+              content: [
+                `Materia: ${subject}`,
+                `Pregunta: ${question}`,
+                `Elegida: ${selectedAnswer}`,
+                `Correcta: ${correctAnswer}`,
+                `Base oficial: ${officialExplanation}`,
+                "Explica por que la elegida esta mal y como reconocer la correcta."
+              ].join("\n")
+            }
+          ]
+        })
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const data = await response.json();
     if (!response.ok) {
@@ -110,7 +116,7 @@ module.exports = async function explainError(req, res) {
 
     sendJson(res, 200, { explanation });
   } catch (error) {
-    if (error?.name === "AbortError" || error?.name === "OpenAITimeout") {
+    if (error?.name === "AbortError") {
       sendJson(res, 504, { error: "OpenAI no respondio a tiempo." });
       return;
     }
