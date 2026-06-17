@@ -10,28 +10,33 @@
   <header class="site-header">
     <nav class="nav">
       <a class="logo" href="index.html">NEXO</a>
-      <div class="nav-links"><a href="dashboard.html">Panel</a><a class="active" href="materia.html?materia=administracion" data-subject-link="materia.html">Materia</a><a href="biblioteca.html">Biblioteca</a><a href="progreso.html">Progreso</a></div>
-      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesion</button></div>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a class="active" href="materia.html">Materias</a><a href="biblioteca.html">Biblioteca</a><a href="cultura.html">Cultura Universitaria</a><a href="tutor.html?materia=administracion" data-subject-link="tutor.html">Tutor IA</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesión</button></div>
     </nav>
   </header>
-  <main class="container">
-    <section class="page-head">
+  <main class="container" data-subject-page>
+    <section class="page-head" data-subject-index>
+      <h1>Materias iniciales</h1>
+      <p>Elegí una materia para revisar su material, completar diagnósticos y continuar desafíos por bloques.</p>
+    </section>
+    <section class="grid grid-3" data-subject-index data-subject-index-list></section>
+    <section class="page-head" data-subject-detail hidden>
       <h1 data-subject-name>Administracion I</h1>
       <p data-subject-description>Una introduccion a las organizaciones, sus objetivos, recursos, procesos y criterios de gestion para estudiantes que comienzan Licenciatura en Administracion.</p>
     </section>
-    <section class="card">
-      <h2>Accesos rapidos</h2>
+    <section class="card" data-subject-detail hidden>
+      <h2>Accesos rápidos</h2>
       <div class="quick-links">
-        <a class="btn btn-primary" href="diagnostico.html?materia=administracion" data-subject-link="diagnostico.html">Diagnostico</a>
-        <a class="btn btn-primary" href="desafio.html?materia=administracion" data-subject-link="desafio.html">Desafio diario</a>
+        <a class="btn btn-primary" href="diagnostico.html?materia=administracion" data-subject-link="diagnostico.html">Diagnóstico</a>
+        <a class="btn btn-primary" href="desafio.html?materia=administracion" data-subject-link="desafio.html">Desafío diario</a>
         <a class="btn btn-secondary" href="biblioteca.html">Biblioteca</a>
         <a class="btn btn-secondary" href="tutor.html?materia=administracion" data-subject-link="tutor.html">Tutor IA</a>
         <a class="btn btn-ghost" href="progreso.html">Progreso</a>
       </div>
     </section>
-    <section class="section grid grid-2">
-      <article class="card source-card"><small>Base de estudio</small><h3 data-subject-source>Resumen de Administracion I</h3><p data-bibliography-note>Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas para las materias iniciales de Licenciatura en Administracion.</p></article>
-      <article class="card"><small>Proxima accion</small><h3>Desafio por bloques</h3><p>Una practica guiada con circuito de avance, foco de estudio y puntaje acumulado.</p></article>
+    <section class="section grid grid-2" data-subject-detail hidden>
+      <article class="card source-card"><small>Base de estudio</small><h3 data-subject-source>Resumen de Administración I</h3><p data-bibliography-note>Contenido basado en la bibliografía actualizada utilizada por la Facultad de Ciencias Económicas para las materias iniciales de Licenciatura en Administración.</p></article>
+      <article class="card"><small>Próxima acción</small><h3>Desafío por bloques</h3><p>Una práctica guiada con circuito de avance, foco de estudio y puntaje acumulado.</p></article>
     </section>
   </main>
   <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Ruta academica inicial.</span></div></footer>

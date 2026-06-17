@@ -10,52 +10,52 @@
   <header class="site-header">
     <nav class="nav">
       <a class="logo" href="index.html">NEXO</a>
-      <div class="nav-links"><a class="active" href="dashboard.html">Panel</a><a href="materia.html?materia=administracion">Materia</a><a href="biblioteca.html">Biblioteca</a><a href="cultura.html">Cultura Universitaria</a><a href="tutor.html?materia=administracion">Tutor IA</a><a href="progreso.html">Progreso</a></div>
-      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesion</button></div>
+      <div class="nav-links"><a class="active" href="dashboard.html">Panel</a><a href="materia.html">Materias</a><a href="biblioteca.html">Biblioteca</a><a href="cultura.html">Cultura Universitaria</a><a href="tutor.html?materia=administracion" data-subject-link="tutor.html">Tutor IA</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesión</button></div>
     </nav>
   </header>
   <main class="container" data-dashboard>
-    <section class="page-head">
-      <h1>Bienvenida, <span data-student-name>estudiante</span></h1>
-      <p>Carrera principal: <strong>Licenciatura en Administracion</strong>. Tu recorrido de nivelacion esta activo para el primer cuatrimestre.</p>
+    <section class="page-head dashboard-head">
+      <div>
+        <h1>Panel de aprendizaje</h1>
+        <p><strong>Licenciatura en Administración</strong> · primer cuatrimestre</p>
+      </div>
+      <div class="dashboard-badges" aria-label="Indicadores del panel">
+        <span class="dashboard-badge dashboard-badge-streak"><span aria-hidden="true">🔥</span><strong data-dashboard-streak-pill>Racha activa · 0 días</strong></span>
+        <span class="dashboard-badge dashboard-badge-points"><span aria-hidden="true">⭐</span><strong data-dashboard-points-pill>Puntos acumulados · 0 pts</strong></span>
+        <span class="dashboard-badge dashboard-badge-ai"><span aria-hidden="true">🤖</span><strong data-dashboard-ai-pill>IA · 4 restantes</strong></span>
+      </div>
     </section>
-    <section class="grid stats">
+    <section class="grid stats dashboard-stats">
       <article class="card"><small>Progreso general</small><span class="stat-value" data-general-progress>0%</span><div class="progress"><span data-general-bar style="width:0%"></span></div></article>
       <article class="card"><small>Puntos acumulados</small><span class="stat-value" data-total-points>0 pts</span><div class="progress"><span data-points-bar style="width:0%"></span></div></article>
-      <article class="card"><small>Desafios completados</small><span class="stat-value" data-completed-challenges>0</span><div class="progress"><span data-challenges-bar style="width:0%"></span></div></article>
-      <article class="card"><small>Tiempo de practica</small><span class="stat-value" data-study-hours>0 h 0 min</span><div class="progress"><span data-hours-bar style="width:0%"></span></div></article>
+      <article class="card"><small>Desafíos completados</small><span class="stat-value" data-completed-challenges>0</span><div class="progress"><span data-challenges-bar style="width:0%"></span></div></article>
+      <article class="card"><small>Tiempo de práctica</small><span class="stat-value" data-study-hours>0 h 0 min</span><div class="progress"><span data-hours-bar style="width:0%"></span></div></article>
     </section>
-    <section class="section dashboard-layout">
+    <section class="section dashboard-layout dashboard-actions">
       <article class="card source-card">
-        <small>Proxima accion sugerida</small>
-        <h2>Completar el siguiente bloque de practica</h2>
-        <p>El circuito de desafios guarda tus aciertos y actualiza el puntaje acumulado en tiempo real.</p>
-        <a class="btn btn-primary" href="desafio.html?materia=administracion">Continuar desafio</a>
+        <small>Próxima acción sugerida</small>
+        <h2 data-next-action-title>Completar el siguiente bloque de Administración I</h2>
+        <p data-next-action-copy>El circuito de desafíos guarda tus aciertos y actualiza el puntaje acumulado en tiempo real.</p>
+        <a class="btn btn-primary" href="desafio.html?materia=administracion" data-next-action-link>Continuar desafío</a>
       </article>
-      <article class="card">
-        <small>Modulo de ingreso</small>
+      <article class="card dashboard-secondary-card">
+        <small>Módulo de ingreso</small>
         <h2>Cultura Universitaria</h2>
         <p>Conceptos clave para moverte durante el primer cuatrimestre en FCE.</p>
-        <a class="btn btn-secondary" href="cultura.html">Abrir modulo</a>
-      </article>
-    </section>
-    <section class="section compact-section">
-      <article class="card">
-        <small>Constancia</small>
-        <span class="stat-value" data-streak>1 dia</span>
-        <div class="progress"><span data-streak-bar style="width:10%"></span></div>
+        <a class="btn btn-secondary" href="cultura.html">Abrir módulo</a>
       </article>
     </section>
     <section class="section">
       <h2 class="section-title">Materias iniciales</h2>
       <div class="grid grid-3">
-        <article class="card"><span class="badge">Activa</span><h3>Administracion I</h3><p data-subject-progress="administracion">0% completado</p><div class="progress"><span data-subject-bar="administracion" style="width:0%"></span></div><a class="btn btn-primary" href="materia.html?materia=administracion">Ver materia</a></article>
-        <article class="card"><span class="badge">En curso</span><h3>Introduccion a la Economia</h3><p data-subject-progress="economia">0% completado</p><div class="progress"><span data-subject-bar="economia" style="width:0%"></span></div><a class="btn btn-primary" href="materia.html?materia=economia">Ver materia</a></article>
+        <article class="card"><span class="badge">Activa</span><h3>Administración I</h3><p data-subject-progress="administracion">0% completado</p><div class="progress"><span data-subject-bar="administracion" style="width:0%"></span></div><a class="btn btn-primary" href="materia.html?materia=administracion">Ver materia</a></article>
+        <article class="card"><span class="badge">En curso</span><h3>Introducción a la Economía</h3><p data-subject-progress="economia">0% completado</p><div class="progress"><span data-subject-bar="economia" style="width:0%"></span></div><a class="btn btn-primary" href="materia.html?materia=introduccion">Ver materia</a></article>
         <article class="card"><span class="badge">En curso</span><h3>Contabilidad I</h3><p data-subject-progress="contabilidad">0% completado</p><div class="progress"><span data-subject-bar="contabilidad" style="width:0%"></span></div><a class="btn btn-primary" href="materia.html?materia=contabilidad">Ver materia</a></article>
       </div>
     </section>
   </main>
-  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Seguimiento academico personalizado.</span></div></footer>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Seguimiento académico personalizado.</span></div></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script src="app.js"></script>

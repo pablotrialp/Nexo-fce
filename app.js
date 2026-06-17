@@ -149,6 +149,10 @@ const subjects = {
 const bibliographyNote = "Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas para las materias iniciales.";
 const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "tutor.html", "progreso.html"];
 let activeSession = null;
+let dashboardAiUsage = null;
+let dashboardAiUsageUnavailable = false;
+let dashboardHasUserProgress = false;
+let dashboardUserProgressUnavailable = false;
 const progressKey = "nexoProgress";
 
 const challengeBlocks = {
@@ -453,6 +457,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initLogout();
   await renderLoggedInUser();
   await hydrateUserProgress();
+  await hydrateDashboardAiUsage();
   initCareerForm();
   renderSubjectPage();
   await hydrateChallengeQuestions();
@@ -466,12 +471,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function currentSubject() {
   const params = new URLSearchParams(window.location.search);
-  const slug = params.get("materia") || "administracion";
+  const slug = normalizeSubjectSlug(params.get("materia")) || "administracion";
   return subjects[slug] ? slug : "administracion";
 }
 
+function hasSubjectParam() {
+  return new URLSearchParams(window.location.search).has("materia");
+}
+
+function normalizeSubjectSlug(value) {
+  if (value === "introduccion") return "economia";
+  return value;
+}
+
+function publicSubjectSlug(slug) {
+  return slug === "economia" ? "introduccion" : slug;
+}
+
 function subjectUrl(page, slug = currentSubject()) {
-  return `${page}?materia=${slug}`;
+  return `${page}?materia=${publicSubjectSlug(slug)}`;
 }
 
 async function protectPage() {
@@ -513,9 +531,15 @@ async function currentSession() {
 
 async function renderLoggedInUser() {
   const targets = document.querySelectorAll("[data-nav-user-name], [data-student-name]");
-  if (!targets.length) return;
+  const logos = document.querySelectorAll(".logo");
+  if (!targets.length && !logos.length) return;
 
   const session = await currentSession();
+  logos.forEach((logo) => {
+    logo.setAttribute("href", session ? "dashboard.html" : "index.html");
+  });
+
+  if (!targets.length) return;
   const displayName = userDisplayName(session?.user);
   if (displayName) localStorage.setItem("nexoStudentName", displayName);
 
@@ -964,12 +988,24 @@ async function hydrateUserProgress() {
   const supabase = window.nexoSupabase;
   if (!session?.user || !supabase) return;
 
+  dashboardUserProgressUnavailable = false;
   const { data, error } = await supabase
     .from("user_progress")
     .select("subject,total_points,completed_challenges,correct_answers,wrong_answers,streak,last_activity_at")
     .eq("user_id", session.user.id);
 
-  if (error || !Array.isArray(data) || !data.length) return;
+  if (error) {
+    dashboardHasUserProgress = false;
+    dashboardUserProgressUnavailable = true;
+    return;
+  }
+
+  if (!Array.isArray(data) || !data.length) {
+    dashboardHasUserProgress = false;
+    return;
+  }
+
+  dashboardHasUserProgress = true;
 
   const progress = getProgress();
   progress.totalPoints = 0;
@@ -1003,6 +1039,30 @@ async function hydrateUserProgress() {
   });
 
   saveProgress(progress);
+}
+
+async function hydrateDashboardAiUsage() {
+  const dashboard = document.querySelector("[data-dashboard]");
+  if (!dashboard) return;
+
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+  if (!session?.user || !supabase) return;
+
+  dashboardAiUsageUnavailable = false;
+  const { data, error } = await supabase
+    .from("ai_usage")
+    .select("used_count,limit_count,is_premium")
+    .eq("user_id", session.user.id)
+    .maybeSingle();
+
+  if (error) {
+    dashboardAiUsage = null;
+    dashboardAiUsageUnavailable = true;
+    return;
+  }
+
+  dashboardAiUsage = data || null;
 }
 
 async function syncSubjectProgress(slug, progress = getProgress()) {
@@ -1081,24 +1141,80 @@ function renderDashboard() {
   }, 0);
   const totalBlocks = Object.keys(subjects).reduce((total, slug) => total + challengeBlocks[slug].length + reinforcementBlocks[slug].length, 0);
   const general = totalBlocks ? Math.round((completedBlocks / totalBlocks) * 100) : 0;
+  const dashboardStreak = dashboardHasUserProgress && Number.isFinite(Number(progress.streak)) ? Number(progress.streak) : 0;
 
   setText("[data-student-name]", studentName);
   setText("[data-total-points]", `${progress.totalPoints} pts`);
   setText("[data-general-progress]", `${general}%`);
-  setText("[data-streak]", `${progress.streak} dia${progress.streak === 1 ? "" : "s"}`);
+  setText("[data-streak]", `${dashboardStreak} día${dashboardStreak === 1 ? "" : "s"}`);
+  setText("[data-dashboard-streak-pill]", dashboardUserProgressUnavailable ? "Racha activa · sin datos" : `Racha activa · ${dashboardStreak} día${dashboardStreak === 1 ? "" : "s"}`);
+  setText("[data-dashboard-points-pill]", `Puntos acumulados · ${progress.totalPoints} pts`);
+  setText("[data-dashboard-ai-pill]", dashboardAiUsageText(dashboardAiUsage, dashboardAiUsageUnavailable));
   setText("[data-completed-challenges]", String(progress.completedChallenges));
   setText("[data-study-hours]", `${Math.floor(progress.studyMinutes / 60)} h ${progress.studyMinutes % 60} min`);
   setProgress("[data-general-bar]", general);
   setProgress("[data-points-bar]", Math.min(progress.totalPoints / 10, 100));
-  setProgress("[data-streak-bar]", Math.min(progress.streak * 10, 100));
+  setProgress("[data-streak-bar]", Math.min(dashboardStreak * 10, 100));
   setProgress("[data-challenges-bar]", Math.min(progress.completedChallenges * 12, 100));
   setProgress("[data-hours-bar]", Math.min(progress.studyMinutes / 3, 100));
+  renderDashboardNextAction();
 
   Object.keys(subjects).forEach((slug) => {
     const completion = subjectCompletion(slug);
     setText(`[data-subject-progress="${slug}"]`, `${completion}% completado`);
     setProgress(`[data-subject-bar="${slug}"]`, completion);
   });
+}
+
+function renderDashboardNextAction() {
+  const title = document.querySelector("[data-next-action-title]");
+  const copy = document.querySelector("[data-next-action-copy]");
+  const link = document.querySelector("[data-next-action-link]");
+  if (!title || !copy || !link) return;
+
+  const nextSlug = nextPracticeSubjectSlug();
+  const subject = subjects[nextSlug];
+  const completion = subjectCompletion(nextSlug);
+  const publicSlug = publicSubjectSlug(nextSlug);
+
+  const titleBySlug = {
+    administracion: `Completar el siguiente bloque de ${subject.name}`,
+    economia: `Continuar con ${subject.name}`,
+    contabilidad: `Reforzar ${subject.name}`
+  };
+
+  title.textContent = titleBySlug[nextSlug] || `Continuar con ${subject.name}`;
+  copy.textContent = dashboardHasUserProgress
+    ? `${subject.name} registra ${completion}% completado. Te conviene continuar por la materia con menor avance.`
+    : "Sin progreso previo registrado, empezá por Administración I para iniciar el recorrido.";
+  link.textContent = "Continuar desafío";
+  link.setAttribute("href", `desafio.html?materia=${publicSlug}`);
+}
+
+function nextPracticeSubjectSlug() {
+  if (!dashboardHasUserProgress) return "administracion";
+
+  const statePriority = {
+    economia: 0,
+    administracion: 1,
+    contabilidad: 2
+  };
+
+  return ["administracion", "economia", "contabilidad"]
+    .map((slug) => ({ slug, completion: subjectCompletion(slug), priority: statePriority[slug] ?? 9 }))
+    .sort((a, b) => a.completion - b.completion || a.priority - b.priority)[0]?.slug || "administracion";
+}
+
+function dashboardAiUsageText(usage, unavailable = false) {
+  if (unavailable) return "IA · sin datos";
+  if (usage?.is_premium) return "Premium activo · IA ilimitada";
+  if (!usage) return "IA · 4 restantes";
+
+  const limit = Number.isFinite(Number(usage.limit_count)) ? Number(usage.limit_count) : 4;
+  const used = Number.isFinite(Number(usage.used_count)) ? Number(usage.used_count) : 0;
+  const remaining = Math.max(0, limit - used);
+  if (remaining === 0) return "Límite IA alcanzado";
+  return `IA · ${remaining} restante${remaining === 1 ? "" : "s"}`;
 }
 
 function renderProgressPage() {
@@ -1215,8 +1331,26 @@ function setProgress(selector, value) {
 }
 
 function renderSubjectPage() {
+  const subjectPage = document.querySelector("[data-subject-page]");
+  const isSubjectIndex = Boolean(subjectPage) && !hasSubjectParam();
+
+  if (subjectPage) {
+    document.querySelectorAll("[data-subject-index]").forEach((node) => {
+      node.hidden = !isSubjectIndex;
+    });
+    document.querySelectorAll("[data-subject-detail]").forEach((node) => {
+      node.hidden = isSubjectIndex;
+    });
+  }
+
+  if (isSubjectIndex) {
+    renderSubjectIndex();
+    return;
+  }
+
   const slug = currentSubject();
   const subject = subjects[slug];
+  if (subjectPage) document.title = `${subject.name} | NEXO`;
   document.querySelectorAll("[data-subject-name]").forEach((node) => {
     node.textContent = subject.name;
   });
@@ -1233,6 +1367,46 @@ function renderSubjectPage() {
     const page = node.dataset.subjectLink;
     node.setAttribute("href", subjectUrl(page, slug));
   });
+}
+
+function renderSubjectIndex() {
+  const list = document.querySelector("[data-subject-index-list]");
+  if (!list) return;
+
+  document.title = "Materias | NEXO";
+  const progress = getProgress();
+  const subjectStates = {
+    administracion: "Activa",
+    economia: "En curso",
+    contabilidad: "Pendiente"
+  };
+
+  list.innerHTML = Object.keys(subjects).map((slug) => {
+    const completion = subjectCompletion(slug);
+    const subjectProgress = ensureSubjectProgress(progress, slug);
+    const completedBlocks = subjectProgress.completedBlocks.length + subjectProgress.completedReviewBlocks.length;
+    const totalBlocks = (challengeBlocks[slug]?.length || 0) + (reinforcementBlocks[slug]?.length || 0);
+    const state = subjectStates[slug] || "En desarrollo";
+    const detailUrl = subjectUrl("materia.html", slug);
+    const challengeUrl = subjectUrl("desafio.html", slug);
+    const progressCopy = totalBlocks
+      ? `${completion}% completado · ${completedBlocks}/${totalBlocks} bloques`
+      : "Disponible próximamente";
+
+    return `
+      <article class="card subject-index-card">
+        <span class="badge">${state}</span>
+        <h3>${subjects[slug].name}</h3>
+        <p>${subjects[slug].description}</p>
+        <strong class="subject-index-progress">${progressCopy}</strong>
+        <div class="progress"><span style="width:${completion}%"></span></div>
+        <div class="actions">
+          <a class="btn btn-secondary" href="${detailUrl}">Ver materia</a>
+          <a class="btn btn-primary" href="${challengeUrl}">Continuar desafío</a>
+        </div>
+      </article>
+    `;
+  }).join("");
 }
 
 function renderDiagnostic() {
