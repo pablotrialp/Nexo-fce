@@ -1218,6 +1218,12 @@ button:disabled {
   gap: 14px;
 }
 
+.chat-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
 .bubble {
   max-width: 82%;
   border-radius: 8px;
@@ -1233,6 +1239,11 @@ button:disabled {
 .bubble.ai {
   justify-self: start;
   background: #eaf3fc;
+}
+
+.bubble.error {
+  color: #8f2d1f;
+  background: #fff0eb;
 }
 
 .library-item {

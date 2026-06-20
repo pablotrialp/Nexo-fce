@@ -184,6 +184,7 @@ let dashboardAiUsage = null;
 let dashboardAiUsageUnavailable = false;
 let dashboardHasUserProgress = false;
 let dashboardUserProgressUnavailable = false;
+let tutorChatHistory = [];
 const progressKey = "nexoProgress";
 
 const challengeBlocks = {
@@ -495,7 +496,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderDashboard();
   renderDiagnostic();
   renderChallenge();
-  renderTutor();
+  await renderTutor();
   renderProgressPage();
   initCultureGuide();
   initExamModels();
@@ -578,6 +579,47 @@ async function renderLoggedInUser() {
   targets.forEach((target) => {
     target.textContent = displayName;
   });
+
+  const practiceButton = document.querySelector("[data-practice-exercise]");
+  const chatForm = document.querySelector("[data-chat-form]");
+  const chat = document.querySelector("[data-chat]");
+  const input = chatForm?.querySelector("input");
+  const submit = chatForm?.querySelector("button[type='submit']");
+
+  practiceButton?.addEventListener("click", async () => {
+    const prompt = "Generá un ejercicio de práctica tipo parcial sobre los temas seleccionados para mi próximo examen.";
+    if (!window.nexoTutorExamContext) {
+      appendBubble(chat, "Cargá un próximo examen para generar ejercicios contextualizados.", "ai");
+      return;
+    }
+
+    await sendPracticeExercisePrompt(prompt, { chat, input, submit, practiceButton });
+  });
+}
+
+async function sendPracticeExercisePrompt(message, controls) {
+  const { chat, input, submit, practiceButton } = controls;
+  appendBubble(chat, message, "user");
+  tutorChatHistory.push({ role: "user", content: message });
+
+  if (submit) submit.disabled = true;
+  if (practiceButton) practiceButton.disabled = true;
+  const loadingBubble = appendBubble(chat, "Pensando una respuesta breve...", "ai");
+
+  try {
+    const result = await requestTutorChatAnswer(message);
+    loadingBubble.textContent = result.answer;
+    tutorChatHistory.push({ role: "assistant", content: result.answer });
+    tutorChatHistory = tutorChatHistory.slice(-12);
+    updateTutorChatUsage(result);
+  } catch (error) {
+    loadingBubble.textContent = error?.message || "No pude responder ahora. Probá de nuevo en un momento.";
+    loadingBubble.classList.add("error");
+  } finally {
+    if (submit) submit.disabled = false;
+    if (practiceButton) practiceButton.disabled = false;
+    input?.focus();
+  }
 }
 
 function initAuthForms() {
@@ -1834,27 +1876,103 @@ function initPomodoro() {
   return { stop: stopTimer, reset: resetTimer };
 }
 
-function renderTutor() {
+async function renderTutor() {
   const chatForm = document.querySelector("[data-chat-form]");
   if (!chatForm) return;
 
-  initAcademicAssistant();
+  await initAcademicAssistant();
+  await hydrateTutorChatUsage();
 
   const input = chatForm.querySelector("input");
+  const submit = chatForm.querySelector("button[type='submit']");
+  const practiceButton = chatForm.querySelector("[data-practice-exercise]");
   const chat = document.querySelector("[data-chat]");
   const slug = currentSubject();
   const subject = subjects[slug];
   document.querySelector("[data-tutor-intro]").textContent = `Estoy usando como base ${subject.source} y la bibliografia actualizada de la Facultad de Ciencias Economicas.`;
 
-  chatForm.addEventListener("submit", (event) => {
+  chatForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!input.value.trim()) return;
 
     const question = input.value.trim();
     appendBubble(chat, question, "user");
-    appendBubble(chat, tutorAnswer(question, subject), "ai");
+    tutorChatHistory.push({ role: "user", content: question });
     input.value = "";
+
+    if (submit) submit.disabled = true;
+    const loadingBubble = appendBubble(chat, "Pensando una respuesta breve...", "ai");
+
+    try {
+      const result = await requestTutorChatAnswer(question);
+      loadingBubble.textContent = result.answer;
+      tutorChatHistory.push({ role: "assistant", content: result.answer });
+      tutorChatHistory = tutorChatHistory.slice(-12);
+      updateTutorChatUsage(result);
+    } catch (error) {
+      loadingBubble.textContent = error?.message || "No pude responder ahora. Probá de nuevo en un momento.";
+      loadingBubble.classList.add("error");
+    } finally {
+      if (submit) submit.disabled = false;
+      input.focus();
+    }
   });
+}
+
+async function hydrateTutorChatUsage() {
+  try {
+    const result = await tutorChatFetch("GET");
+    updateTutorChatUsage(result);
+  } catch {
+    setText("[data-tutor-chat-usage]", "Consultas Tutor IA restantes: --");
+  }
+}
+
+async function requestTutorChatAnswer(message) {
+  const result = await tutorChatFetch("POST", {
+    message,
+    history: tutorChatHistory.slice(0, -1).slice(-6),
+    academic_context: window.nexoTutorExamContext || null
+  });
+
+  if (result.limitReached) {
+    updateTutorChatUsage(result);
+    throw new Error(result.message || "Alcanzaste el limite gratuito del Chat Tutor IA. Activar Premium habilitara consultas ilimitadas.");
+  }
+
+  if (!result.answer) throw new Error(result.error || "El Tutor IA no devolvio una respuesta.");
+  return result;
+}
+
+async function tutorChatFetch(method, body) {
+  const session = await currentSession();
+  if (!session?.access_token) throw new Error("Tenes que iniciar sesion para usar el Chat Tutor IA.");
+
+  const response = await fetch("/api/tutor-chat", {
+    method,
+    headers: {
+      "Authorization": `Bearer ${session.access_token}`,
+      ...(body ? { "Content-Type": "application/json" } : {})
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "No se pudo conectar con el Chat Tutor IA.");
+  return data;
+}
+
+function updateTutorChatUsage(usage) {
+  const target = document.querySelector("[data-tutor-chat-usage]");
+  if (!target || !usage) return;
+
+  if (usage.isPremium) {
+    target.textContent = "Consultas Tutor IA restantes: ilimitadas";
+    return;
+  }
+
+  const remaining = Number.isFinite(Number(usage.remainingUses)) ? Number(usage.remainingUses) : 0;
+  target.textContent = `Consultas Tutor IA restantes: ${remaining}`;
 }
 
 async function initAcademicAssistant() {
@@ -2071,8 +2189,45 @@ async function deleteExamGoal(examId) {
 
 async function refreshAcademicAssistant() {
   const examGoals = await fetchFutureExamGoals();
-  renderAcademicAssistant(examGoals[0] || null);
+  const nextExam = examGoals[0] || null;
+  const academicPerformance = nextExam ? await fetchAcademicPerformance(nextExam.subject) : null;
+  renderAcademicAssistant(nextExam, academicPerformance);
   renderExamGoalList(examGoals);
+}
+
+async function fetchAcademicPerformance(subjectName) {
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+  const slug = slugFromSubjectName(subjectName);
+  if (!session?.user || !supabase || !slug) return null;
+
+  const { data, error } = await supabase
+    .from("user_progress")
+    .select("subject,total_points,completed_challenges,correct_answers,wrong_answers,streak,last_activity_at,updated_at")
+    .eq("user_id", session.user.id)
+    .in("subject", [slug, ...subjectNamesForSlug(slug)])
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+
+  const correctAnswers = Number(data.correct_answers || 0);
+  const wrongAnswers = Number(data.wrong_answers || 0);
+  const totalResponses = correctAnswers + wrongAnswers;
+
+  return {
+    subject: subjectName,
+    completed_challenges: Number(data.completed_challenges || 0),
+    total_points: Number(data.total_points || 0),
+    correct_answers: correctAnswers,
+    wrong_answers: wrongAnswers,
+    total_responses: totalResponses,
+    accuracy_rate: totalResponses ? correctAnswers / totalResponses : null,
+    wrong_rate: totalResponses ? wrongAnswers / totalResponses : null,
+    streak: Number(data.streak || 0),
+    last_activity_at: data.last_activity_at || null,
+    updated_at: data.updated_at || null
+  };
 }
 
 function renderExamGoalList(examGoals) {
@@ -2139,7 +2294,7 @@ async function resetExamGoalForm(form) {
   if (submit) submit.textContent = "Guardar examen";
 }
 
-function renderAcademicAssistant(examGoal) {
+function renderAcademicAssistant(examGoal, academicPerformance = null) {
   const assistant = document.querySelector(".academic-assistant");
   if (!assistant) return;
 
@@ -2151,11 +2306,11 @@ function renderAcademicAssistant(examGoal) {
   const days = assistant.querySelector("[data-next-exam-days]");
   const examTopics = assistant.querySelector("[data-exam-topics]");
   const weakTopics = assistant.querySelector("[data-weak-topics]");
+  const performance = assistant.querySelector("[data-academic-performance]");
   const recommendation = assistant.querySelector("[data-study-recommendation]");
 
-  window.nexoTutorExamContext = examGoal || null;
-
   if (!examGoal) {
+    window.nexoTutorExamContext = null;
     if (emptyState) emptyState.hidden = false;
     if (cards) cards.hidden = true;
     if (actions) actions.hidden = true;
@@ -2165,7 +2320,13 @@ function renderAcademicAssistant(examGoal) {
   const daysLeft = daysUntilExam(examGoal.exam_date);
   const topicList = Array.isArray(examGoal.topics) ? examGoal.topics : [];
   const weakness = academicWeaknessesForExam(examGoal);
-  const recommendationText = studyRecommendation(daysLeft, weakness.topics);
+  const recommendationText = studyRecommendation(daysLeft, topicList, academicPerformance);
+  window.nexoTutorExamContext = {
+    ...examGoal,
+    days_left: daysLeft,
+    weak_topics: weakness.topics,
+    academic_performance: academicPerformance
+  };
 
   if (emptyState) emptyState.hidden = true;
   if (cards) cards.hidden = false;
@@ -2198,6 +2359,12 @@ function renderAcademicAssistant(examGoal) {
     weakTopics.innerHTML = weakness.topics.length
       ? `<ul class="academic-topic-list">${weakness.topics.map((topic) => `<li>${escapeHtml(topic)}</li>`).join("")}</ul>`
       : `<p>${escapeHtml(weakness.message)}</p>`;
+  }
+
+  if (performance) {
+    performance.textContent = academicPerformance
+      ? performanceSummary(academicPerformance)
+      : "Aún no hay suficiente práctica registrada en esta materia.";
   }
 
   if (recommendation) {
@@ -2271,6 +2438,30 @@ function academicWeaknessesForExam(examGoal) {
   };
 }
 
+function academicWeaknessesForExam() {
+  return {
+    topics: [],
+    message: "Hoy NEXO mide tu rendimiento por materia. Para detectar temas débiles, completá desafíos clasificados por tema."
+  };
+}
+
+function academicWeaknessesForExam() {
+  return {
+    topics: [],
+    message: "Hoy NEXO mide tu rendimiento por materia. Para detectar fortalezas y debilidades por tema, completá desafíos clasificados por tema."
+  };
+}
+
+function performanceSummary(performance) {
+  if (!performance || !performance.total_responses) {
+    return "Aún no hay suficiente práctica registrada en esta materia.";
+  }
+
+  const accuracy = Math.round(Number(performance.accuracy_rate || 0) * 100);
+  const completed = Number(performance.completed_challenges || 0);
+  return `Rendimiento actual en ${performance.subject}: ${accuracy}% de aciertos · ${completed} desafío${completed === 1 ? "" : "s"} completado${completed === 1 ? "" : "s"}.`;
+}
+
 function todayDateString() {
   const now = new Date();
   const year = now.getFullYear();
@@ -2315,6 +2506,54 @@ function studyRecommendation(daysLeft, weakTopics = []) {
   return `${daysCopy} para tu examen. Priorizá ${weakTopics.slice(0, 2).join(" y ")}, donde registrás más errores.`;
 }
 
+function studyRecommendation(daysLeft, topics = [], performance = null) {
+  const safeDays = Math.max(daysLeft, 0);
+  const dayText = safeDays === 1 ? "1 día" : `${safeDays} días`;
+  const topicText = topics.length ? topics.slice(0, 3).join(" y ") : "los temas seleccionados";
+  const hasPerformance = performance && Number.isFinite(Number(performance.accuracy_rate));
+  const accuracy = hasPerformance ? Math.round(Number(performance.accuracy_rate) * 100) : null;
+
+  if (!hasPerformance || !performance.total_responses) {
+    if (safeDays <= 3) {
+      return `Como faltan ${dayText} para el examen, priorizá repaso intensivo y ejercicios prácticos de ${topicText}. Completá desafíos para que NEXO pueda medir tu rendimiento real.`;
+    }
+    if (safeDays <= 10) {
+      return `Faltan ${dayText} para el examen. Combiná teoría con práctica y completá desafíos de ${topicText} para registrar tu avance.`;
+    }
+    return `Faltan ${dayText} para el examen. Avanzá de forma progresiva con ${topicText} y sumá desafíos para construir tu diagnóstico académico.`;
+  }
+
+  if (accuracy < 50) {
+    if (safeDays <= 3) {
+      return `Tu rendimiento actual es ${accuracy}%. Como faltan ${dayText} para el examen, priorizá ejercicios prácticos de ${topicText} y completá al menos 2 desafíos adicionales antes de rendir.`;
+    }
+    if (safeDays <= 10) {
+      return `Tu rendimiento actual es ${accuracy}%. Reforzá la materia con teoría breve, práctica guiada y desafíos adicionales de ${topicText}.`;
+    }
+    return `Tu rendimiento actual es ${accuracy}%. Tenés tiempo para reforzar la materia: estudiá ${topicText} de forma progresiva y aumentá la cantidad de desafíos.`;
+  }
+
+  if (accuracy <= 75) {
+    if (safeDays <= 3) {
+      return `Tu rendimiento actual es ${accuracy}%. Consolidá conocimientos con ejercicios prácticos de ${topicText} y repasá los conceptos que todavía te generen dudas.`;
+    }
+    if (safeDays <= 10) {
+      return `Tu rendimiento actual es ${accuracy}%. Alterná práctica y teoría, y completá desafíos adicionales para consolidar ${topicText}.`;
+    }
+    return `Tu rendimiento actual es ${accuracy}%. Mantené un estudio progresivo y usá las próximas semanas para consolidar ${topicText}.`;
+  }
+
+  if (safeDays <= 3) {
+    return `Tu rendimiento es sólido (${accuracy}%). En estos ${dayText}, hacé simulacros cortos, repasos finales y ejercicios prácticos de ${topicText}.`;
+  }
+
+  if (safeDays <= 10) {
+    return `Tu rendimiento es sólido (${accuracy}%). Combiná simulacros con repasos puntuales y completá algunos desafíos extra para llegar con ritmo.`;
+  }
+
+  return "Tu rendimiento es sólido. Aprovechá las próximas semanas para realizar simulacros y reforzar conceptos puntuales.";
+}
+
 function showExamGoalMessage(message, text, isError = false) {
   if (!message) return;
   message.textContent = text;
@@ -2341,6 +2580,7 @@ function appendBubble(chat, text, type) {
   bubble.className = `bubble ${type}`;
   bubble.textContent = text;
   chat.appendChild(bubble);
+  return bubble;
 }
 
 async function initCultureGuide() {

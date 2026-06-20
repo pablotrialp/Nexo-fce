@@ -60,9 +60,14 @@
           <ul class="academic-topic-list" data-exam-topics></ul>
         </article>
         <article class="card academic-card">
-          <small>Errores reales</small>
-          <h3>Temas a reforzar</h3>
+          <small>Seguimiento académico</small>
+          <h3>Seguimiento académico</h3>
           <div class="academic-card-content" data-weak-topics></div>
+        </article>
+        <article class="card academic-card">
+          <small>Rendimiento actual</small>
+          <h3>Rendimiento actual</h3>
+          <p data-academic-performance></p>
         </article>
         <article class="card academic-card academic-card-recommendation">
           <small>Recomendación NEXO</small>
@@ -81,9 +86,13 @@
       </section>
     </section>
     <section class="card">
+      <div class="chat-toolbar">
+        <span class="badge badge-muted" data-tutor-chat-usage>Consultas Tutor IA restantes: --</span>
+      </div>
       <div class="chat" data-chat></div>
       <form class="form" data-chat-form style="margin-top:18px;">
         <div class="field"><label for="chat">Nueva consulta</label><input id="chat" placeholder="Escribi una pregunta sobre la materia"></div>
+        <button class="btn btn-secondary" type="button" data-practice-exercise>Generar ejercicio de práctica</button>
         <button class="btn btn-primary" type="submit">Enviar consulta</button>
       </form>
     </section>
