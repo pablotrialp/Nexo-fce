@@ -148,6 +148,37 @@ const subjects = {
 
 const bibliographyNote = "Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas para las materias iniciales.";
 const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "modelos.html", "tutor.html", "progreso.html"];
+const examSubjectOptions = [
+  { slug: "administracion", label: "Administración I", dbNames: ["Administracion I", "Administración I"] },
+  { slug: "economia", label: "Introducción a la Economía", dbNames: ["Introduccion a la Economia", "Introducción a la Economía"] },
+  { slug: "contabilidad", label: "Contabilidad I", dbNames: ["Contabilidad I"] }
+];
+const fallbackExamTopics = {
+  administracion: [
+    "Introducción a la Administración",
+    "Organizaciones",
+    "Planeamiento",
+    "Organización",
+    "Dirección",
+    "Control"
+  ],
+  economia: [
+    "Escasez",
+    "Costo de oportunidad",
+    "Frontera de posibilidades de producción",
+    "Oferta y demanda",
+    "Microeconomía",
+    "Macroeconomía"
+  ],
+  contabilidad: [
+    "Patrimonio",
+    "Activo",
+    "Pasivo",
+    "Patrimonio neto",
+    "Devengado",
+    "Estados contables"
+  ]
+};
 let activeSession = null;
 let dashboardAiUsage = null;
 let dashboardAiUsageUnavailable = false;
@@ -1807,6 +1838,8 @@ function renderTutor() {
   const chatForm = document.querySelector("[data-chat-form]");
   if (!chatForm) return;
 
+  initAcademicAssistant();
+
   const input = chatForm.querySelector("input");
   const chat = document.querySelector("[data-chat]");
   const slug = currentSubject();
@@ -1822,6 +1855,477 @@ function renderTutor() {
     appendBubble(chat, tutorAnswer(question, subject), "ai");
     input.value = "";
   });
+}
+
+async function initAcademicAssistant() {
+  const assistant = document.querySelector(".academic-assistant");
+  if (!assistant) return;
+
+  const form = assistant.querySelector("[data-exam-goal-form]");
+  const emptyState = assistant.querySelector("[data-exam-empty-state]");
+  const cards = assistant.querySelector("[data-academic-cards]");
+  const list = assistant.querySelector("[data-exam-goal-list]");
+  const toggleButtons = assistant.querySelectorAll("[data-exam-form-toggle]");
+  const cancelButton = assistant.querySelector("[data-exam-form-cancel]");
+  const message = assistant.querySelector("[data-exam-goal-message]");
+  const submit = form?.querySelector("[data-exam-submit]");
+  const idInput = form?.querySelector("[data-exam-goal-id]");
+  const subjectSelect = form?.querySelector("[data-exam-subject-select]");
+  const topicOptions = form?.querySelector("[data-exam-topic-options]");
+  const dateInput = form?.querySelector("[name='exam_date']");
+
+  if (subjectSelect) {
+    renderExamSubjectOptions(subjectSelect);
+    subjectSelect.value = currentSubject();
+    await renderExamTopicOptions(topicOptions, subjectSelect.value);
+    subjectSelect.addEventListener("change", async () => {
+      await renderExamTopicOptions(topicOptions, subjectSelect.value);
+    });
+  }
+  if (dateInput) dateInput.min = todayDateString();
+
+  toggleButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      await resetExamGoalForm(form);
+      if (form) form.hidden = false;
+      if (emptyState) emptyState.hidden = true;
+      hideExamGoalMessage(message);
+      subjectSelect?.focus();
+    });
+  });
+
+  cancelButton?.addEventListener("click", async () => {
+    await resetExamGoalForm(form);
+    if (form) form.hidden = true;
+    if (emptyState && cards?.hidden) emptyState.hidden = false;
+    hideExamGoalMessage(message);
+  });
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    hideExamGoalMessage(message);
+
+    if (submit) submit.disabled = true;
+
+    try {
+      const isEditing = Boolean(idInput?.value);
+      await saveExamGoal(new FormData(form));
+      await refreshAcademicAssistant();
+      await resetExamGoalForm(form);
+      form.hidden = true;
+      showExamGoalMessage(message, isEditing ? "Cambios guardados correctamente." : "Examen guardado correctamente.");
+    } catch (error) {
+      showExamGoalMessage(message, error?.message || "No se pudo guardar el examen.", true);
+    } finally {
+      if (submit) submit.disabled = false;
+    }
+  });
+
+  list?.addEventListener("click", async (event) => {
+    const action = event.target.closest("[data-exam-action]");
+    if (!action) return;
+
+    const item = action.closest("[data-exam-id]");
+    const examId = item?.dataset.examId;
+    if (!examId) return;
+
+    const examGoals = await fetchFutureExamGoals();
+    const examGoal = examGoals.find((goal) => goal.id === examId);
+    if (!examGoal) return;
+
+    if (action.dataset.examAction === "edit") {
+      await loadExamGoalIntoForm(form, examGoal);
+      if (emptyState) emptyState.hidden = true;
+      form.hidden = false;
+      hideExamGoalMessage(message);
+      subjectSelect?.focus();
+      return;
+    }
+
+    if (action.dataset.examAction === "delete") {
+      const confirmed = confirm("¿Querés eliminar este examen?");
+      if (!confirmed) return;
+      action.disabled = true;
+      try {
+        await deleteExamGoal(examId);
+        await refreshAcademicAssistant();
+      } catch (error) {
+        showExamGoalMessage(message, error?.message || "No se pudo eliminar el examen.", true);
+      } finally {
+        action.disabled = false;
+      }
+    }
+  });
+
+  try {
+    await refreshAcademicAssistant();
+  } catch (error) {
+    console.error("No se pudo cargar el proximo examen.", error);
+    if (emptyState) emptyState.hidden = false;
+    if (cards) cards.hidden = true;
+    showExamGoalMessage(message, "No se pudo cargar tu próximo examen. Intentá de nuevo más tarde.", true);
+  }
+}
+
+async function saveExamGoal(formData) {
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+  if (!session?.user || !supabase) throw new Error("Tenés que iniciar sesión para guardar tu examen.");
+
+  const examId = String(formData.get("id") || "").trim();
+  const subjectSlug = String(formData.get("subject") || "").trim();
+  const subject = examSubjectLabel(subjectSlug);
+  const examDate = String(formData.get("exam_date") || "").trim();
+  const topics = formData.getAll("topics").map((topic) => String(topic).trim()).filter(Boolean);
+
+  if (!subjectSlug || !subject) throw new Error("Elegí la materia del examen.");
+  if (!examDate) throw new Error("Ingresá la fecha del examen.");
+  if (!topics.length) throw new Error("Elegí al menos un tema del examen.");
+
+  if (examId) {
+    const { data, error } = await supabase
+      .from("exam_goals")
+      .update({ subject, exam_date: examDate, topics })
+      .eq("id", examId)
+      .eq("user_id", session.user.id)
+      .select("id,subject,exam_date,topics,created_at")
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from("exam_goals")
+    .select("id")
+    .eq("user_id", session.user.id)
+    .eq("subject", subject)
+    .eq("exam_date", examDate)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+
+  if (existing?.id) {
+    const { data, error } = await supabase
+      .from("exam_goals")
+      .update({ topics })
+      .eq("id", existing.id)
+      .eq("user_id", session.user.id)
+      .select("id,subject,exam_date,topics,created_at")
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  const { data, error } = await supabase
+    .from("exam_goals")
+    .insert({
+      user_id: session.user.id,
+      subject,
+      exam_date: examDate,
+      topics
+    })
+    .select("id,subject,exam_date,topics,created_at")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function fetchNextExamGoal() {
+  const examGoals = await fetchFutureExamGoals();
+  return examGoals[0] || null;
+}
+
+async function fetchFutureExamGoals() {
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+  if (!session?.user || !supabase) return [];
+
+  const { data, error } = await supabase
+    .from("exam_goals")
+    .select("id,subject,exam_date,topics,created_at")
+    .eq("user_id", session.user.id)
+    .gte("exam_date", todayDateString())
+    .order("exam_date", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+async function deleteExamGoal(examId) {
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+  if (!session?.user || !supabase) throw new Error("TenÃ©s que iniciar sesiÃ³n para eliminar tu examen.");
+
+  const { error } = await supabase
+    .from("exam_goals")
+    .delete()
+    .eq("id", examId)
+    .eq("user_id", session.user.id);
+
+  if (error) throw error;
+}
+
+async function refreshAcademicAssistant() {
+  const examGoals = await fetchFutureExamGoals();
+  renderAcademicAssistant(examGoals[0] || null);
+  renderExamGoalList(examGoals);
+}
+
+function renderExamGoalList(examGoals) {
+  const assistant = document.querySelector(".academic-assistant");
+  if (!assistant) return;
+
+  const section = assistant.querySelector("[data-exam-list-section]");
+  const list = assistant.querySelector("[data-exam-goal-list]");
+  if (!section || !list) return;
+
+  section.hidden = !examGoals.length;
+  list.innerHTML = examGoals.map((examGoal) => {
+    const topicList = Array.isArray(examGoal.topics) ? examGoal.topics : [];
+    const topics = topicList.length ? topicList.join(", ") : "Sin temas seleccionados";
+    const daysLeft = daysUntilExam(examGoal.exam_date);
+
+    return `
+      <article class="academic-exam-item" data-exam-id="${escapeHtml(examGoal.id)}">
+        <div>
+          <strong>${escapeHtml(examGoal.subject)}</strong>
+          <div class="academic-exam-meta">${escapeHtml(formatExamDate(examGoal.exam_date))} · ${escapeHtml(examDaysLabel(daysLeft))}</div>
+          <div class="academic-exam-topics">${escapeHtml(topics)}</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary" type="button" data-exam-action="edit">Editar</button>
+          <button class="btn btn-secondary" type="button" data-exam-action="delete">Eliminar</button>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+async function loadExamGoalIntoForm(form, examGoal) {
+  if (!form || !examGoal) return;
+
+  const idInput = form.querySelector("[data-exam-goal-id]");
+  const subjectSelect = form.querySelector("[data-exam-subject-select]");
+  const topicOptions = form.querySelector("[data-exam-topic-options]");
+  const dateInput = form.querySelector("[name='exam_date']");
+  const submit = form.querySelector("[data-exam-submit]");
+  const subjectSlug = slugFromSubjectName(examGoal.subject) || currentSubject();
+  const topics = Array.isArray(examGoal.topics) ? examGoal.topics : [];
+
+  if (idInput) idInput.value = examGoal.id || "";
+  if (subjectSelect) subjectSelect.value = subjectSlug;
+  if (dateInput) dateInput.value = examGoal.exam_date || "";
+  await renderExamTopicOptions(topicOptions, subjectSlug, topics, false);
+  if (submit) submit.textContent = "Guardar cambios";
+}
+
+async function resetExamGoalForm(form) {
+  if (!form) return;
+
+  const idInput = form.querySelector("[data-exam-goal-id]");
+  const submit = form.querySelector("[data-exam-submit]");
+  const dateInput = form.querySelector("[name='exam_date']");
+  const subjectSelect = form.querySelector("[data-exam-subject-select]");
+  const topicOptions = form.querySelector("[data-exam-topic-options]");
+
+  if (idInput) idInput.value = "";
+  if (dateInput) dateInput.value = "";
+  if (subjectSelect) subjectSelect.value = currentSubject();
+  await renderExamTopicOptions(topicOptions, subjectSelect?.value || currentSubject());
+  if (submit) submit.textContent = "Guardar examen";
+}
+
+function renderAcademicAssistant(examGoal) {
+  const assistant = document.querySelector(".academic-assistant");
+  if (!assistant) return;
+
+  const emptyState = assistant.querySelector("[data-exam-empty-state]");
+  const cards = assistant.querySelector("[data-academic-cards]");
+  const actions = assistant.querySelector("[data-academic-actions]");
+  const subject = assistant.querySelector("[data-next-exam-subject]");
+  const date = assistant.querySelector("[data-next-exam-date]");
+  const days = assistant.querySelector("[data-next-exam-days]");
+  const examTopics = assistant.querySelector("[data-exam-topics]");
+  const weakTopics = assistant.querySelector("[data-weak-topics]");
+  const recommendation = assistant.querySelector("[data-study-recommendation]");
+
+  window.nexoTutorExamContext = examGoal || null;
+
+  if (!examGoal) {
+    if (emptyState) emptyState.hidden = false;
+    if (cards) cards.hidden = true;
+    if (actions) actions.hidden = true;
+    return;
+  }
+
+  const daysLeft = daysUntilExam(examGoal.exam_date);
+  const topicList = Array.isArray(examGoal.topics) ? examGoal.topics : [];
+  const weakness = academicWeaknessesForExam(examGoal);
+  const recommendationText = studyRecommendation(daysLeft, weakness.topics);
+
+  if (emptyState) emptyState.hidden = true;
+  if (cards) cards.hidden = false;
+  if (actions) actions.hidden = false;
+
+  if (subject) {
+    subject.textContent = examGoal.subject;
+    subject.dataset.nextExamSubject = examGoal.subject;
+  }
+
+  if (date) {
+    date.textContent = formatExamDate(examGoal.exam_date);
+    date.dataset.nextExamDate = examGoal.exam_date;
+  }
+
+  if (days) {
+    days.textContent = examDaysLabel(daysLeft);
+    days.dataset.nextExamDays = String(daysLeft);
+  }
+
+  if (examTopics) {
+    examTopics.dataset.examTopics = topicList.join(", ");
+    examTopics.innerHTML = topicList.length
+      ? topicList.map((topic) => `<li>${escapeHtml(topic)}</li>`).join("")
+      : "<li>Sin temas cargados todavía</li>";
+  }
+
+  if (weakTopics) {
+    weakTopics.dataset.weakTopics = weakness.topics.join(", ");
+    weakTopics.innerHTML = weakness.topics.length
+      ? `<ul class="academic-topic-list">${weakness.topics.map((topic) => `<li>${escapeHtml(topic)}</li>`).join("")}</ul>`
+      : `<p>${escapeHtml(weakness.message)}</p>`;
+  }
+
+  if (recommendation) {
+    recommendation.textContent = recommendationText;
+    recommendation.dataset.studyRecommendation = recommendationText;
+  }
+}
+
+function renderExamSubjectOptions(select) {
+  if (!select) return;
+  select.innerHTML = examSubjectOptions
+    .map((option) => `<option value="${option.slug}">${escapeHtml(option.label)}</option>`)
+    .join("");
+}
+
+async function renderExamTopicOptions(container, subjectSlug, selectedTopics = [], selectFirst = true) {
+  if (!container) return;
+
+  const availableTopics = await availableExamTopics(subjectSlug);
+  const topics = [...new Set([...availableTopics, ...selectedTopics].map((topic) => String(topic || "").trim()).filter(Boolean))];
+  const selected = new Set(selectedTopics.map((topic) => normalizeText(topic)));
+  container.innerHTML = topics.map((topic, index) => `
+    <label class="academic-topic-option">
+      <input type="checkbox" name="topics" value="${escapeHtml(topic)}" ${selected.has(normalizeText(topic)) || (!selected.size && selectFirst && index === 0) ? "checked" : ""}>
+      <span>${escapeHtml(topic)}</span>
+    </label>
+  `).join("");
+}
+
+async function availableExamTopics(subjectSlug) {
+  const remoteTopics = await fetchQuestionTopics(subjectSlug);
+  return remoteTopics.length ? remoteTopics : fallbackExamTopics[subjectSlug] || [];
+}
+
+async function fetchQuestionTopics(subjectSlug) {
+  const supabase = window.nexoSupabase;
+  if (!supabase || !subjectSlug) return [];
+
+  const { data, error } = await supabase
+    .from("questions")
+    .select("topic")
+    .in("subject", subjectNamesForSlug(subjectSlug))
+    .eq("is_active", true)
+    .not("topic", "is", null);
+
+  if (error || !Array.isArray(data)) return [];
+
+  return [...new Set(data.map((row) => String(row.topic || "").trim()).filter(Boolean))]
+    .sort((first, second) => first.localeCompare(second, "es"));
+}
+
+function examSubjectLabel(subjectSlug) {
+  return examSubjectOptions.find((option) => option.slug === subjectSlug)?.label || "";
+}
+
+function academicWeaknessesForExam(examGoal) {
+  const slug = slugFromSubjectName(examGoal?.subject);
+  const progress = getProgress();
+  const subjectProgress = slug ? ensureSubjectProgress(progress, slug) : null;
+
+  if (!subjectProgress || !subjectProgress.wrongAnswers) {
+    return {
+      topics: [],
+      message: "Completá desafíos para detectar temas a reforzar."
+    };
+  }
+
+  return {
+    topics: [],
+    message: "Completá desafíos para detectar temas a reforzar."
+  };
+}
+
+function todayDateString() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function dateFromDateString(value) {
+  const [year, month, day] = String(value || "").split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function daysUntilExam(examDate) {
+  const today = dateFromDateString(todayDateString());
+  const target = dateFromDateString(examDate);
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  return Math.ceil((target - today) / millisecondsPerDay);
+}
+
+function formatExamDate(examDate) {
+  return dateFromDateString(examDate).toLocaleDateString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+}
+
+function examDaysLabel(daysLeft) {
+  if (daysLeft === 0) return "Es hoy";
+  if (daysLeft === 1) return "Falta 1 día";
+  return `Faltan ${daysLeft} días`;
+}
+
+function studyRecommendation(daysLeft, weakTopics = []) {
+  const daysCopy = daysLeft === 1 ? "Falta 1 día" : `Faltan ${Math.max(daysLeft, 0)} días`;
+
+  if (!weakTopics.length) {
+    return `${daysCopy} para tu examen. Completá desafíos de los temas seleccionados para que NEXO pueda detectar prioridades de estudio.`;
+  }
+
+  return `${daysCopy} para tu examen. Priorizá ${weakTopics.slice(0, 2).join(" y ")}, donde registrás más errores.`;
+}
+
+function showExamGoalMessage(message, text, isError = false) {
+  if (!message) return;
+  message.textContent = text;
+  message.classList.toggle("error", isError);
+  message.classList.add("show");
+}
+
+function hideExamGoalMessage(message) {
+  if (!message) return;
+  message.classList.remove("show", "error");
+  message.textContent = "";
 }
 
 function tutorAnswer(question, subject) {

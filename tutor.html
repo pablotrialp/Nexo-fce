@@ -16,6 +16,70 @@
   </header>
   <main class="container">
     <section class="page-head"><h1>Tutor IA</h1><p>Asistencia de estudio para resolver dudas frecuentes de <strong data-subject-name>Administracion I</strong>. <span data-tutor-intro></span></p></section>
+    <section class="academic-assistant" aria-labelledby="academic-assistant-title">
+      <h2 id="academic-assistant-title" class="section-title">Asistente académico</h2>
+      <div class="academic-empty-state" data-exam-empty-state hidden>
+        <p>Todavía no cargaste tu próximo examen.</p>
+        <button class="btn btn-primary" type="button" data-exam-form-toggle>Cargar examen</button>
+      </div>
+      <form class="form academic-exam-form" data-exam-goal-form hidden>
+        <input type="hidden" name="id" data-exam-goal-id>
+        <div class="grid grid-3">
+          <div class="field">
+            <label for="exam-subject">Materia</label>
+            <select id="exam-subject" name="subject" required data-exam-subject-select></select>
+          </div>
+          <div class="field">
+            <label for="exam-date">Fecha del examen</label>
+            <input id="exam-date" name="exam_date" type="date" required>
+          </div>
+          <div class="field">
+            <label>Temas a evaluar</label>
+            <div class="academic-topic-options" data-exam-topic-options></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" type="submit" data-exam-submit>Guardar examen</button>
+          <button class="btn btn-secondary" type="button" data-exam-form-cancel>Cancelar</button>
+        </div>
+        <p class="message" data-exam-goal-message></p>
+      </form>
+      <div class="grid grid-4 academic-assistant-grid" data-academic-cards hidden>
+        <article class="card academic-card" data-next-exam>
+          <small>Próximo examen</small>
+          <h3>Próximo examen</h3>
+          <div class="academic-card-content">
+            <strong data-next-exam-subject></strong>
+            <span data-next-exam-date></span>
+            <span class="badge" data-next-exam-days></span>
+          </div>
+        </article>
+        <article class="card academic-card">
+          <small>Temas seleccionados</small>
+          <h3>Temas del examen</h3>
+          <ul class="academic-topic-list" data-exam-topics></ul>
+        </article>
+        <article class="card academic-card">
+          <small>Errores reales</small>
+          <h3>Temas a reforzar</h3>
+          <div class="academic-card-content" data-weak-topics></div>
+        </article>
+        <article class="card academic-card academic-card-recommendation">
+          <small>Recomendación NEXO</small>
+          <h3>Recomendación NEXO</h3>
+          <p data-study-recommendation></p>
+        </article>
+      </div>
+      <div class="academic-assistant-actions" data-academic-actions hidden>
+        <button class="btn btn-secondary" type="button" data-exam-form-toggle>Cargar otro examen</button>
+      </div>
+      <section class="academic-exam-list" data-exam-list-section hidden>
+        <div class="academic-exam-list-head">
+          <h3>Mis próximos exámenes</h3>
+        </div>
+        <div class="academic-exam-items" data-exam-goal-list></div>
+      </section>
+    </section>
     <section class="card">
       <div class="chat" data-chat></div>
       <form class="form" data-chat-form style="margin-top:18px;">
