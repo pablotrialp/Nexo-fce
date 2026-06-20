@@ -147,7 +147,7 @@ const subjects = {
 };
 
 const bibliographyNote = "Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas para las materias iniciales.";
-const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "tutor.html", "progreso.html"];
+const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "modelos.html", "tutor.html", "progreso.html"];
 let activeSession = null;
 let dashboardAiUsage = null;
 let dashboardAiUsageUnavailable = false;
@@ -467,6 +467,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderTutor();
   renderProgressPage();
   initCultureGuide();
+  initExamModels();
 });
 
 function currentSubject() {
@@ -1858,4 +1859,39 @@ async function initCultureGuide() {
     if (placeholder) placeholder.hidden = false;
     if (status) status.textContent = "El PDF aun no esta cargado. El enlace queda preparado para assets/cultura-universitaria.pdf.";
   }
+}
+
+async function initExamModels() {
+  const modelsPage = document.querySelector("[data-exam-models]");
+  if (!modelsPage) return;
+
+  const viewer = modelsPage.querySelector("[data-pdf-viewer]");
+  const placeholder = modelsPage.querySelector("[data-pdf-placeholder]");
+  const status = modelsPage.querySelector("[data-pdf-status]");
+  const availableCards = modelsPage.querySelectorAll("[data-model-card][data-pdf-path]");
+
+  availableCards.forEach(async (card) => {
+    const pdfPath = card.dataset.pdfPath;
+    const openLink = card.querySelector("[data-pdf-open]");
+    const downloadLink = card.querySelector("[data-pdf-download]");
+    const badge = card.querySelector("[data-model-status]");
+
+    try {
+      const response = await fetch(pdfPath, { method: "HEAD", cache: "no-store" });
+      if (!response.ok) throw new Error("PDF pendiente");
+      if (badge) badge.textContent = "Disponible";
+      if (openLink) openLink.removeAttribute("aria-disabled");
+      if (downloadLink) downloadLink.removeAttribute("aria-disabled");
+      if (viewer) viewer.hidden = false;
+      if (placeholder) placeholder.hidden = true;
+      if (status) status.textContent = "El modelo de Administración I esta disponible para visualizar online o descargar.";
+    } catch {
+      if (badge) badge.textContent = "Disponible";
+      if (openLink) openLink.setAttribute("aria-disabled", "true");
+      if (downloadLink) downloadLink.setAttribute("aria-disabled", "true");
+      if (viewer) viewer.hidden = true;
+      if (placeholder) placeholder.hidden = false;
+      if (status) status.textContent = `El PDF aun no esta cargado. El enlace queda preparado para ${pdfPath}.`;
+    }
+  });
 }

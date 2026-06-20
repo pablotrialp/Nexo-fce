@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Modelos de examen | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="materia.html">Materias</a><a href="biblioteca.html">Biblioteca</a><a href="cultura.html">Cultura Universitaria</a><a class="active" href="modelos.html">Modelos de examen</a><a href="tutor.html?materia=administracion" data-subject-link="tutor.html">Tutor IA</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesión</button></div>
+    </nav>
+  </header>
+  <main class="container" data-exam-models>
+    <section class="page-head">
+      <h1>Modelos de examen</h1>
+      <p>Parciales modelo por materia para practicar con el formato de evaluación antes de rendir.</p>
+    </section>
+
+    <section class="grid grid-3 exam-model-grid">
+      <article class="card exam-model-card" data-model-card data-pdf-path="assets/modelos-examen/administracion-i-parcial-modelo-2026.pdf">
+        <span class="badge" data-model-status>Disponible</span>
+        <small>Modelo de parcial</small>
+        <h2>Administración I</h2>
+        <p>Modelo 2026 preparado para consulta online y descarga.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="assets/modelos-examen/administracion-i-parcial-modelo-2026.pdf" target="_blank" rel="noopener" data-pdf-open>Ver modelo</a>
+          <a class="btn btn-secondary" href="assets/modelos-examen/administracion-i-parcial-modelo-2026.pdf" download data-pdf-download>Descargar PDF</a>
+        </div>
+      </article>
+      <article class="card exam-model-card">
+        <span class="badge badge-muted">Próximamente</span>
+        <small>Modelo de parcial</small>
+        <h2>Introducción a la Economía</h2>
+        <p>El modelo quedará disponible cuando se cargue el PDF correspondiente.</p>
+      </article>
+      <article class="card exam-model-card">
+        <span class="badge badge-muted">Próximamente</span>
+        <small>Modelo de parcial</small>
+        <h2>Contabilidad I</h2>
+        <p>El modelo quedará disponible cuando se cargue el PDF correspondiente.</p>
+      </article>
+    </section>
+
+    <section class="section compact-section">
+      <article class="card guide-card">
+        <small>Vista previa</small>
+        <h2>Modelo Administración I</h2>
+        <p data-pdf-status>El archivo esperado es assets/modelos-examen/administracion-i-parcial-modelo-2026.pdf. Si todavía no fue cargado, este módulo queda preparado para publicarlo sin cambiar la página.</p>
+        <div class="pdf-placeholder" data-pdf-placeholder>Placeholder: cuando el PDF exista en assets/modelos-examen/, se mostrará acá mismo para consulta directa.</div>
+        <iframe class="pdf-viewer" src="assets/modelos-examen/administracion-i-parcial-modelo-2026.pdf" title="Modelo de parcial Administración I" data-pdf-viewer hidden></iframe>
+      </article>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Práctica de examen para el ingreso.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

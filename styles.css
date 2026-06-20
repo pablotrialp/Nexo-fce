@@ -236,6 +236,11 @@ a {
   background: #e7f5f2;
 }
 
+.btn[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.58;
+}
+
 .section {
   padding: 54px 0;
 }
@@ -1079,6 +1084,11 @@ button:disabled {
   font-weight: 900;
 }
 
+.badge-muted {
+  color: #5f6f7d;
+  background: #edf2f6;
+}
+
 .source-card {
   background: #f8fbfe;
   border-color: rgba(31, 111, 214, 0.2);
@@ -1192,6 +1202,24 @@ button:disabled {
 
 .culture-grid .card p + p {
   margin-top: -4px;
+}
+
+.exam-model-grid {
+  align-items: stretch;
+}
+
+.exam-model-card {
+  display: flex;
+  min-height: 260px;
+  flex-direction: column;
+}
+
+.exam-model-card .badge {
+  align-self: flex-start;
+}
+
+.exam-model-card .actions {
+  margin-top: auto;
 }
 
 .guide-card {
