@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Premium activado | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="dashboard.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="tutor.html?materia=administracion">Tutor IA</a></div>
+      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesión</button></div>
+    </nav>
+  </header>
+  <main class="container">
+    <section class="auth-shell">
+      <article class="card auth-card">
+        <small>NEXO Premium</small>
+        <h1>Premium activado correctamente.</h1>
+        <p data-premium-result>Estamos activando tu acceso ilimitado.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="tutor.html?materia=administracion">Ir al Tutor IA</a>
+          <a class="btn btn-secondary" href="dashboard.html">Volver al panel</a>
+        </div>
+      </article>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Asistencia inteligente para el estudio.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -147,7 +147,7 @@ const subjects = {
 };
 
 const bibliographyNote = "Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas para las materias iniciales.";
-const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "modelos.html", "tutor.html", "progreso.html"];
+const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "modelos.html", "tutor.html", "progreso.html", "premium-success.html"];
 const examSubjectOptions = [
   { slug: "administracion", label: "Administración I", dbNames: ["Administracion I", "Administración I"] },
   { slug: "economia", label: "Introducción a la Economía", dbNames: ["Introduccion a la Economia", "Introducción a la Economía"] },
@@ -500,6 +500,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderProgressPage();
   initCultureGuide();
   initExamModels();
+  initPremiumCheckout();
+  await initPremiumSuccess();
 });
 
 function currentSubject() {
@@ -1137,6 +1139,100 @@ async function hydrateDashboardAiUsage() {
   }
 
   dashboardAiUsage = data || null;
+  updatePremiumUi(Boolean(dashboardAiUsage?.is_premium));
+}
+
+function updatePremiumUi(isPremium) {
+  document.querySelectorAll("[data-premium-badge]").forEach((badge) => {
+    badge.hidden = !isPremium;
+  });
+
+  document.querySelectorAll("[data-premium-checkout], [data-premium-cta]").forEach((node) => {
+    node.hidden = isPremium;
+  });
+}
+
+function initPremiumCheckout() {
+  document.querySelectorAll("[data-premium-checkout]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await startPremiumCheckout(button);
+    });
+  });
+}
+
+async function startPremiumCheckout(button = null) {
+  const originalText = button?.textContent;
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Abriendo checkout...";
+  }
+
+  try {
+    const response = await fetch("/api/create-preference", { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.init_point) throw new Error("premium_checkout_failed");
+    window.location.href = data.init_point;
+  } catch {
+    alert("No se pudo abrir Mercado Pago. Si estás probando en local, verificá MERCADOPAGO_ACCESS_TOKEN o probá desde la versión publicada.");
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  }
+}
+
+async function initPremiumSuccess() {
+  const result = document.querySelector("[data-premium-result]");
+  if (!result) return;
+
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+  if (!session?.user || !supabase) {
+    result.textContent = "Iniciá sesión para activar Premium en tu cuenta.";
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const { error } = await supabase.from("ai_usage").upsert({
+    user_id: session.user.id,
+    is_premium: true,
+    updated_at: now
+  }, { onConflict: "user_id" });
+
+  if (error) {
+    result.textContent = "El pago fue aprobado, pero no pudimos activar Premium automáticamente. Contactá soporte.";
+    return;
+  }
+
+  dashboardAiUsage = { ...(dashboardAiUsage || {}), is_premium: true };
+  updatePremiumUi(true);
+  result.textContent = "Premium activado correctamente. Ya tenés consultas ilimitadas.";
+}
+
+function showPremiumModal({ title, text, primary = "Activar Premium", secondary = "Seguir gratis", onSecondary = null }) {
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.innerHTML = `
+    <article class="card modal-card">
+      <h2>${escapeHtml(title)}</h2>
+      <p>${escapeHtml(text)}</p>
+      <div class="actions">
+        <button class="btn btn-primary" type="button" data-modal-premium>${escapeHtml(primary)}</button>
+        <button class="btn btn-secondary" type="button" data-modal-close>${escapeHtml(secondary)}</button>
+      </div>
+    </article>
+  `;
+  document.body.appendChild(backdrop);
+
+  backdrop.querySelector("[data-modal-close]")?.addEventListener("click", () => {
+    backdrop.remove();
+    if (typeof onSecondary === "function") onSecondary();
+  });
+
+  backdrop.querySelector("[data-modal-premium]")?.addEventListener("click", () => {
+    const button = backdrop.querySelector("[data-modal-premium]");
+    startPremiumCheckout(button);
+  });
 }
 
 async function syncSubjectProgress(slug, progress = getProgress()) {
@@ -1627,12 +1723,15 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
         });
         const data = await result.json();
         if (data.limitReached) {
-          response.innerHTML = `
-            <p>${escapeHtml(data.message)}</p>
-            <a class="btn btn-primary" href="${data.upgradeUrl}" target="_blank" rel="noopener">Activar Premium</a>
-          `;
+          response.textContent = data.message || "Llegaste al límite gratuito de explicaciones IA.";
           response.classList.add("show");
           button.textContent = "Limite gratuito alcanzado";
+          showPremiumModal({
+            title: "Llegaste al límite gratuito de explicaciones IA",
+            text: "Con NEXO Premium podés recibir explicaciones ilimitadas y seguir practicando sin interrupciones.",
+            primary: "Activar Premium",
+            secondary: "Seguir sin IA"
+          });
           return;
         }
         if (!result.ok || !data.explanation) throw new Error(data.error || "No se pudo generar la explicacion.");
@@ -1937,6 +2036,12 @@ async function requestTutorChatAnswer(message) {
 
   if (result.limitReached) {
     updateTutorChatUsage(result);
+    showPremiumModal({
+      title: "Llegaste al límite gratuito del Tutor IA",
+      text: "Activá Premium para continuar con consultas ilimitadas, ejercicios de práctica y recomendaciones personalizadas.",
+      primary: "Activar Premium",
+      secondary: "Seguir gratis"
+    });
     throw new Error(result.message || "Alcanzaste el limite gratuito del Chat Tutor IA. Activar Premium habilitara consultas ilimitadas.");
   }
 
@@ -1967,10 +2072,12 @@ function updateTutorChatUsage(usage) {
   if (!target || !usage) return;
 
   if (usage.isPremium) {
-    target.textContent = "Consultas Tutor IA restantes: ilimitadas";
+    target.textContent = "Consultas Tutor IA: Ilimitadas";
+    updatePremiumUi(true);
     return;
   }
 
+  updatePremiumUi(false);
   const remaining = Number.isFinite(Number(usage.remainingUses)) ? Number(usage.remainingUses) : 0;
   target.textContent = `Consultas Tutor IA restantes: ${remaining}`;
 }
