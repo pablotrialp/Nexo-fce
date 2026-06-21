@@ -29,6 +29,32 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+function bearerToken(req) {
+  const header = req.headers.authorization || req.headers.Authorization || "";
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : "";
+}
+
+async function getAuthenticatedUser(token) {
+  const supabaseUrl = loadLocalEnv("SUPABASE_URL");
+  const anonKey = loadLocalEnv("SUPABASE_ANON_KEY");
+
+  if (!supabaseUrl || !anonKey) {
+    throw new Error("Falta configurar SUPABASE_URL o SUPABASE_ANON_KEY.");
+  }
+
+  const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/user`, {
+    method: "GET",
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) return null;
+  return response.json();
+}
+
 module.exports = async function createPreference(req, res) {
   if (req.method !== "POST") {
     sendJson(res, 405, { error: "Metodo no permitido." });
@@ -42,6 +68,18 @@ module.exports = async function createPreference(req, res) {
   }
 
   try {
+    const token = bearerToken(req);
+    if (!token) {
+      sendJson(res, 401, { error: "Tenes que iniciar sesion para activar Premium." });
+      return;
+    }
+
+    const user = await getAuthenticatedUser(token);
+    if (!user?.id) {
+      sendJson(res, 401, { error: "Sesion invalida o vencida. Inicia sesion nuevamente." });
+      return;
+    }
+
     const client = new MercadoPagoConfig({ accessToken });
     const preference = new Preference(client);
     const result = await preference.create({
@@ -55,6 +93,7 @@ module.exports = async function createPreference(req, res) {
             currency_id: "ARS"
           }
         ],
+        external_reference: user.id,
         back_urls: {
           success: SUCCESS_URL,
           failure: FAILURE_URL,

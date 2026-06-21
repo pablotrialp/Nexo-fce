@@ -147,7 +147,7 @@ const subjects = {
 };
 
 const bibliographyNote = "Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas para las materias iniciales.";
-const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "modelos.html", "tutor.html", "progreso.html", "premium-success.html"];
+const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "modelos.html", "tutor.html", "progreso.html"];
 const examSubjectOptions = [
   { slug: "administracion", label: "Administración I", dbNames: ["Administracion I", "Administración I"] },
   { slug: "economia", label: "Introducción a la Economía", dbNames: ["Introduccion a la Economia", "Introducción a la Economía"] },
@@ -1168,7 +1168,17 @@ async function startPremiumCheckout(button = null) {
   }
 
   try {
-    const response = await fetch("/api/create-preference", { method: "POST" });
+    const session = await currentSession();
+    if (!session?.access_token) {
+      throw new Error("premium_login_required");
+    }
+
+    const response = await fetch("/api/create-preference", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`
+      }
+    });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.init_point) throw new Error("premium_checkout_failed");
     window.location.href = data.init_point;
@@ -1184,6 +1194,7 @@ async function startPremiumCheckout(button = null) {
 async function initPremiumSuccess() {
   const result = document.querySelector("[data-premium-result]");
   if (!result) return;
+  return;
 
   const session = await currentSession();
   const supabase = window.nexoSupabase;
@@ -1207,6 +1218,45 @@ async function initPremiumSuccess() {
   dashboardAiUsage = { ...(dashboardAiUsage || {}), is_premium: true };
   updatePremiumUi(true);
   result.textContent = "Premium activado correctamente. Ya tenés consultas ilimitadas.";
+}
+
+async function initPremiumSuccess() {
+  const result = document.querySelector("[data-premium-result]");
+  if (!result) return;
+
+  result.textContent = "Verificando pago...";
+
+  const params = new URLSearchParams(window.location.search);
+  const paymentId = params.get("payment_id") || params.get("collection_id");
+  if (!paymentId) {
+    result.textContent = "No pudimos verificar el pago.";
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/confirm-premium", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payment_id: paymentId })
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (response.ok && data.status === "approved") {
+      dashboardAiUsage = { ...(dashboardAiUsage || {}), is_premium: true };
+      updatePremiumUi(true);
+      result.textContent = "Premium activado correctamente.";
+      return;
+    }
+
+    if (data.status === "not_approved") {
+      result.textContent = "El pago todavia no fue aprobado.";
+      return;
+    }
+
+    result.textContent = data.message || "No pudimos activar Premium. Intenta nuevamente o contacta soporte.";
+  } catch {
+    result.textContent = "No pudimos activar Premium. Intenta nuevamente o contacta soporte.";
+  }
 }
 
 function showPremiumModal({ title, text, primary = "Activar Premium", secondary = "Seguir gratis", onSecondary = null }) {
