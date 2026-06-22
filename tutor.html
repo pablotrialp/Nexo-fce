@@ -15,12 +15,12 @@
     </nav>
   </header>
   <main class="container">
-    <section class="page-head page-head-with-visual">
+    <section class="page-head page-head-with-visual tutor-page-head">
       <div class="page-head-copy">
         <h1>Tutor IA</h1>
         <p>Asistencia de estudio para resolver dudas frecuentes de <strong data-subject-name>Administracion I</strong>. <span data-tutor-intro></span></p>
       </div>
-      <img class="page-illustration" src="assets/images/tutor-ai.svg" alt="Asistente académico con inteligencia artificial">
+      <img class="page-illustration tutor-head-illustration" src="assets/images/tutor-ai.svg" alt="Asistente académico con inteligencia artificial">
     </section>
     <section class="academic-assistant" aria-labelledby="academic-assistant-title">
       <h2 id="academic-assistant-title" class="section-title">Asistente académico</h2>
@@ -91,35 +91,34 @@
         <div class="academic-exam-items" data-exam-goal-list></div>
       </section>
     </section>
-    <section class="card">
-      <div class="chat-toolbar">
-        <span class="badge" data-premium-badge hidden>⭐ Premium activo</span>
-        <span class="badge badge-muted" data-tutor-chat-usage>Consultas Tutor IA restantes: --</span>
-      </div>
-      <div class="premium-banner premium-banner-compact" data-premium-cta>
-        <div>
-          <small>NEXO Premium</small>
-          <h2>Desbloqueá tu preparación universitaria</h2>
-          <ul>
-            <li>Tutor IA sin límite de consultas.</li>
-            <li>Explicaciones IA ilimitadas en desafíos.</li>
-            <li>Ejercicios de práctica generados por IA.</li>
-            <li>Seguimiento académico personalizado.</li>
-            <li>Preparación orientada a tus próximos exámenes.</li>
-          </ul>
+    <section class="tutor-workspace" aria-label="Chat con Tutor IA">
+      <article class="card tutor-chat-card">
+        <div class="tutor-chat-head">
+          <div>
+            <small>Conversación académica</small>
+            <h2>Chat con Tutor IA</h2>
+            <div class="chat-toolbar">
+              <span class="badge" data-premium-badge hidden>⭐ Premium activo</span>
+              <span class="badge badge-muted tutor-usage-badge" data-tutor-chat-usage>💬 Consultas restantes: --</span>
+            </div>
+          </div>
         </div>
-        <div class="premium-banner-side">
-          <strong>$1.999 ARS</strong>
-          <span>Precio promocional de validación del MVP.</span>
-          <button class="btn btn-primary" type="button" data-premium-checkout>Activar Premium</button>
-        </div>
-      </div>
-      <div class="chat" data-chat></div>
-      <form class="form" data-chat-form style="margin-top:18px;">
-        <div class="field"><label for="chat">Nueva consulta</label><input id="chat" placeholder="Escribi una pregunta sobre la materia"></div>
-        <button class="btn btn-secondary" type="button" data-practice-exercise>Generar ejercicio de práctica</button>
-        <button class="btn btn-primary" type="submit">Enviar consulta</button>
-      </form>
+        <div class="chat" data-chat></div>
+        <form class="form tutor-chat-form" data-chat-form>
+          <div class="tutor-chat-compose">
+            <div class="field tutor-chat-input"><label for="chat">Nueva consulta</label><input id="chat" placeholder="Escribi una pregunta sobre la materia"></div>
+            <button class="btn btn-primary" type="submit">Enviar consulta</button>
+          </div>
+          <button class="btn btn-secondary tutor-practice-action" type="button" data-practice-exercise>Generar ejercicio de práctica</button>
+        </form>
+      </article>
+      <aside class="premium-tutor-card" data-premium-cta>
+        <span class="premium-tutor-badge">Premium</span>
+        <small>NEXO Premium</small>
+        <h2>Tutor IA ilimitado + ejercicios de práctica</h2>
+        <strong>$1.999 ARS</strong>
+        <button class="btn btn-primary" type="button" data-premium-checkout>Activar Premium</button>
+      </aside>
     </section>
   </main>
   <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Asistencia inteligente para el estudio.</span></div></footer>
