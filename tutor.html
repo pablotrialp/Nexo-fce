@@ -11,11 +11,17 @@
     <nav class="nav">
       <a class="logo" href="index.html">NEXO</a>
       <div class="nav-links"><a href="dashboard.html">Panel</a><a href="materia.html">Materias</a><a href="biblioteca.html">Biblioteca</a><a href="cultura.html">Cultura Universitaria</a><a href="modelos.html">Modelos de examen</a><a class="active" href="tutor.html?materia=administracion" data-subject-link="tutor.html">Tutor IA</a></div>
-      <div class="nav-actions"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesión</button></div>
+      <div class="nav-actions"><img class="user-avatar user-avatar-nav" src="assets/images/avatar-default.png" alt="Avatar del usuario"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesión</button></div>
     </nav>
   </header>
   <main class="container">
-    <section class="page-head"><h1>Tutor IA</h1><p>Asistencia de estudio para resolver dudas frecuentes de <strong data-subject-name>Administracion I</strong>. <span data-tutor-intro></span></p></section>
+    <section class="page-head page-head-with-visual">
+      <div class="page-head-copy">
+        <h1>Tutor IA</h1>
+        <p>Asistencia de estudio para resolver dudas frecuentes de <strong data-subject-name>Administracion I</strong>. <span data-tutor-intro></span></p>
+      </div>
+      <img class="page-illustration" src="assets/images/tutor-ai.svg" alt="Asistente académico con inteligencia artificial">
+    </section>
     <section class="academic-assistant" aria-labelledby="academic-assistant-title">
       <h2 id="academic-assistant-title" class="section-title">Asistente académico</h2>
       <div class="academic-empty-state" data-exam-empty-state hidden>
