@@ -696,6 +696,60 @@ select:focus {
   font-weight: 800;
 }
 
+.dashboard-premium-card {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  margin: 8px 0 18px;
+  padding: 18px 20px;
+  border-color: rgba(217, 151, 36, 0.32);
+  background: linear-gradient(135deg, #fff8df 0%, #ffffff 56%, #fffdf6 100%);
+  box-shadow: 0 8px 22px rgba(120, 78, 10, 0.06);
+}
+
+.dashboard-premium-icon {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #8f620d;
+  background: #ffe9a8;
+  font-size: 1.25rem;
+  flex: 0 0 auto;
+}
+
+.dashboard-premium-copy h2 {
+  margin: 0 0 4px;
+  color: var(--navy);
+  font-size: clamp(1.22rem, 2vw, 1.55rem);
+  line-height: 1.15;
+}
+
+.dashboard-premium-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.dashboard-premium-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  justify-self: end;
+}
+
+.dashboard-premium-action strong {
+  font-size: 1.08rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dashboard-premium-action .btn {
+  white-space: nowrap;
+}
+
 .premium-banner-compact {
   margin-bottom: 16px;
 }
@@ -2073,6 +2127,16 @@ button:disabled {
   .feedback-option-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .dashboard-premium-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .dashboard-premium-action {
+    grid-column: 2;
+    justify-content: flex-start;
+    justify-self: start;
+  }
 }
 
 @media (max-width: 620px) {
@@ -2145,6 +2209,27 @@ button:disabled {
   .feedback-invite-card .btn,
   .feedback-option-grid {
     width: 100%;
+  }
+
+  .dashboard-premium-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .dashboard-premium-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .dashboard-premium-action {
+    grid-column: auto;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-premium-action .btn {
+    flex: 1 1 180px;
   }
 
   .tutor-feedback {
