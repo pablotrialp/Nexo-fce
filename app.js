@@ -2066,10 +2066,6 @@ async function renderTutor() {
   const submit = chatForm.querySelector("button[type='submit']");
   const practiceButton = chatForm.querySelector("[data-practice-exercise]");
   const chat = document.querySelector("[data-chat]");
-  const slug = currentSubject();
-  const subject = subjects[slug];
-  document.querySelector("[data-tutor-intro]").textContent = `Estoy usando como base ${subject.source} y la bibliografia actualizada de la Facultad de Ciencias Economicas.`;
-
   chatForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!input.value.trim()) return;
