@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/admin-sugerencias",
+      "destination": "/admin-sugerencias.html"
+    }
+  ]
+}

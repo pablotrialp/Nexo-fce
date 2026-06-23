@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sugerencias recibidas | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="materia.html">Materias</a><a href="biblioteca.html">Biblioteca</a><a href="cultura.html">Cultura Universitaria</a><a href="modelos.html">Modelos de examen</a><a href="tutor.html?materia=administracion" data-subject-link="tutor.html">Tutor IA</a></div>
+      <div class="nav-actions"><img class="user-avatar user-avatar-nav" src="assets/images/avatar-default.png" alt="Avatar del usuario"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesión</button></div>
+    </nav>
+  </header>
+  <main class="container admin-feedback-page" data-admin-feedback-page>
+    <section class="page-head">
+      <div class="page-head-copy">
+        <h1>Sugerencias recibidas</h1>
+        <p>Vista interna para revisar comentarios enviados por usuarios de NEXO.</p>
+      </div>
+    </section>
+    <section class="card admin-feedback-card">
+      <p class="message show" data-admin-feedback-status>Cargando sugerencias...</p>
+      <div class="admin-feedback-table-wrap" data-admin-feedback-table-wrap hidden>
+        <table class="admin-feedback-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Usuario/email</th>
+              <th>Origen</th>
+              <th>Tipo</th>
+              <th>Sección</th>
+              <th>Rating</th>
+              <th>Útil</th>
+              <th>Mensaje</th>
+            </tr>
+          </thead>
+          <tbody data-admin-feedback-rows></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Seguimiento académico personalizado.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

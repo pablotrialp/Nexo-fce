@@ -147,7 +147,8 @@ const subjects = {
 };
 
 const bibliographyNote = "Contenido basado en la bibliografia actualizada utilizada por la Facultad de Ciencias Economicas para las materias iniciales.";
-const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "modelos.html", "tutor.html", "progreso.html"];
+const protectedPages = ["dashboard.html", "seleccion-carrera.html", "materia.html", "diagnostico.html", "desafio.html", "biblioteca.html", "cultura.html", "modelos.html", "tutor.html", "progreso.html", "sugerencia.html", "admin-sugerencias.html", "admin-sugerencias"];
+const feedbackAdminEmail = "pablotrialp@gmail.com";
 const examSubjectOptions = [
   { slug: "administracion", label: "Administración I", dbNames: ["Administracion I", "Administración I"] },
   { slug: "economia", label: "Introducción a la Economía", dbNames: ["Introduccion a la Economia", "Introducción a la Economía"] },
@@ -488,6 +489,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initPasswordReset();
   initLogout();
   await renderLoggedInUser();
+  renderAdminNavigation();
   await hydrateUserProgress();
   await hydrateDashboardAiUsage();
   initCareerForm();
@@ -502,6 +504,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   initExamModels();
   initPremiumCheckout();
   await initPremiumSuccess();
+  initFeedbackForm();
+  await initAdminFeedbackPage();
 });
 
 function currentSubject() {
@@ -554,6 +558,14 @@ function userDisplayName(user) {
   return fullName?.trim() || user?.email?.split("@")[0] || localStorage.getItem("nexoStudentName") || "estudiante";
 }
 
+function userEmail(user) {
+  return (user?.email || "").trim().toLowerCase();
+}
+
+function isFeedbackAdmin(user) {
+  return userEmail(user) === feedbackAdminEmail;
+}
+
 async function currentSession() {
   if (activeSession) return activeSession;
   const supabase = window.nexoSupabase;
@@ -562,6 +574,23 @@ async function currentSession() {
   if (error || !data.session) return null;
   activeSession = data.session;
   return activeSession;
+}
+
+async function renderAdminNavigation() {
+  const session = await currentSession();
+  if (!isFeedbackAdmin(session?.user)) return;
+
+  document.querySelectorAll(".nav-links").forEach((nav) => {
+    if (nav.querySelector("[data-admin-feedback-link]")) return;
+    const link = document.createElement("a");
+    link.href = "admin-sugerencias.html";
+    link.dataset.adminFeedbackLink = "true";
+    link.textContent = "📋 Sugerencias recibidas";
+    if (window.location.pathname.endsWith("admin-sugerencias.html") || window.location.pathname.endsWith("admin-sugerencias")) {
+      link.classList.add("active");
+    }
+    nav.appendChild(link);
+  });
 }
 
 async function renderLoggedInUser() {
@@ -614,6 +643,7 @@ async function sendPracticeExercisePrompt(message, controls) {
     tutorChatHistory.push({ role: "assistant", content: result.answer });
     tutorChatHistory = tutorChatHistory.slice(-12);
     updateTutorChatUsage(result);
+    appendTutorFeedbackPrompt(chat);
   } catch (error) {
     loadingBubble.textContent = error?.message || "No pude responder ahora. Probá de nuevo en un momento.";
     loadingBubble.classList.add("error");
@@ -2058,6 +2088,7 @@ async function renderTutor() {
       tutorChatHistory.push({ role: "assistant", content: result.answer });
       tutorChatHistory = tutorChatHistory.slice(-12);
       updateTutorChatUsage(result);
+      appendTutorFeedbackPrompt(chat);
     } catch (error) {
       loadingBubble.textContent = error?.message || "No pude responder ahora. Probá de nuevo en un momento.";
       loadingBubble.classList.add("error");
@@ -2130,6 +2161,252 @@ function updateTutorChatUsage(usage) {
   updatePremiumUi(false);
   const remaining = Number.isFinite(Number(usage.remainingUses)) ? Number(usage.remainingUses) : 0;
   target.textContent = `Consultas Tutor IA restantes: ${remaining}`;
+}
+
+function appendTutorFeedbackPrompt(chat) {
+  if (!chat) return;
+
+  chat.querySelectorAll(".tutor-feedback:not(.is-sent)").forEach((node) => node.remove());
+
+  const wrapper = document.createElement("form");
+  wrapper.className = "tutor-feedback";
+  wrapper.innerHTML = `
+    <div class="tutor-feedback-row">
+      <span>¿Te sirvió?</span>
+      <button class="tutor-feedback-link" type="button" data-tutor-action="yes">👍 Sí</button>
+      <button class="tutor-feedback-link" type="button" data-tutor-action="no">👎 No</button>
+      <button class="tutor-feedback-link" type="button" data-tutor-action="comment">💬 Comentar</button>
+    </div>
+    <div class="tutor-feedback-detail" data-tutor-feedback-detail hidden>
+      <textarea maxlength="300" placeholder="Contanos brevemente qué mejorarías..." data-tutor-feedback-message></textarea>
+      <button class="btn btn-primary" type="submit" data-tutor-feedback-submit>Enviar opinión</button>
+    </div>
+    <span class="tutor-feedback-status" data-tutor-feedback-status></span>
+  `;
+
+  let selectedUtil = null;
+  const detail = wrapper.querySelector("[data-tutor-feedback-detail]");
+  const submit = wrapper.querySelector("[data-tutor-feedback-submit]");
+  const status = wrapper.querySelector("[data-tutor-feedback-status]");
+
+  const showCommentBox = () => {
+    if (detail) detail.hidden = false;
+    wrapper.querySelector("[data-tutor-feedback-message]")?.focus();
+  };
+
+  const finishTutorFeedback = () => {
+    wrapper.classList.add("is-sent");
+    wrapper.innerHTML = `<span class="tutor-feedback-thanks">Gracias por tu opinión 💜</span>`;
+  };
+
+  const setBusy = (busy) => {
+    wrapper.querySelectorAll("button, textarea").forEach((control) => {
+      control.disabled = busy;
+    });
+  };
+
+  const submitTutorFeedback = async ({ util = selectedUtil, includeMessage = true } = {}) => {
+    setBusy(true);
+    status.textContent = "Enviando...";
+    status.classList.remove("error");
+
+    try {
+      await saveFeedbackNexo({
+        origen: "tutor_ia",
+        tipo: "opinion_tutor",
+        rating: null,
+        mensaje: includeMessage ? wrapper.querySelector("[data-tutor-feedback-message]")?.value?.trim() || null : null,
+        seccion: "Tutor IA",
+        util
+      });
+      finishTutorFeedback();
+    } catch (error) {
+      status.textContent = error?.message || "No se pudo enviar tu opinión.";
+      status.classList.add("error");
+      setBusy(false);
+    }
+  };
+
+  wrapper.querySelector("[data-tutor-action='yes']")?.addEventListener("click", () => {
+    selectedUtil = true;
+    submitTutorFeedback({ util: true, includeMessage: false });
+  });
+
+  wrapper.querySelector("[data-tutor-action='no']")?.addEventListener("click", () => {
+    selectedUtil = false;
+    wrapper.querySelectorAll("[data-tutor-action]").forEach((option) => option.classList.remove("is-selected"));
+    wrapper.querySelector("[data-tutor-action='no']")?.classList.add("is-selected");
+    showCommentBox();
+  });
+
+  wrapper.querySelector("[data-tutor-action='comment']")?.addEventListener("click", () => {
+    selectedUtil = null;
+    wrapper.querySelectorAll("[data-tutor-action]").forEach((option) => option.classList.remove("is-selected"));
+    wrapper.querySelector("[data-tutor-action='comment']")?.classList.add("is-selected");
+    showCommentBox();
+  });
+
+  wrapper.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (submit?.disabled) return;
+    await submitTutorFeedback();
+  });
+
+  chat.appendChild(wrapper);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function saveFeedbackNexo(payload) {
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+  if (!session?.user || !supabase) throw new Error("Tenés que iniciar sesión para enviar tu comentario.");
+
+  const { error } = await supabase.from("feedback_nexo").insert({
+    user_id: session.user.id,
+    user_email: session.user.email || null,
+    origen: payload.origen,
+    tipo: payload.tipo || null,
+    rating: payload.rating ?? null,
+    mensaje: payload.mensaje || null,
+    seccion: payload.seccion || null,
+    util: payload.util ?? null
+  });
+
+  if (error) throw new Error("No se pudo guardar el comentario. Probá de nuevo en un momento.");
+}
+
+function initFeedbackForm() {
+  const form = document.querySelector("[data-feedback-form]");
+  if (!form) return;
+
+  const message = form.querySelector("[data-feedback-message]");
+  const count = form.querySelector("[data-feedback-count]");
+  const status = form.querySelector("[data-feedback-status]");
+  const submit = form.querySelector("[data-feedback-submit]");
+
+  const updateCount = () => {
+    if (count) count.textContent = String(message?.value?.length || 0);
+  };
+
+  message?.addEventListener("input", updateCount);
+  updateCount();
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const text = message?.value?.trim() || "";
+    const rating = form.querySelector("input[name='rating']:checked")?.value;
+
+    if (!text) {
+      showInlineMessage(status, "Escribí un comentario antes de enviarlo.", true);
+      return;
+    }
+
+    if (!rating) {
+      showInlineMessage(status, "Elegí una puntuación de 1 a 5 estrellas.", true);
+      return;
+    }
+
+    submit.disabled = true;
+    showInlineMessage(status, "Enviando comentario...");
+
+    try {
+      await saveFeedbackNexo({
+        origen: "panel",
+        tipo: form.querySelector("input[name='tipo']:checked")?.value || "Sugerencia",
+        rating: Number(rating),
+        mensaje: text,
+        seccion: form.querySelector("[name='seccion']")?.value || "General",
+        util: null
+      });
+      form.reset();
+      updateCount();
+      showInlineMessage(status, "Gracias por ayudarnos a mejorar NEXO 💜");
+    } catch (error) {
+      showInlineMessage(status, error?.message || "No se pudo enviar el comentario.", true);
+    } finally {
+      submit.disabled = false;
+    }
+  });
+}
+
+async function initAdminFeedbackPage() {
+  const page = document.querySelector("[data-admin-feedback-page]");
+  if (!page) return;
+
+  const status = page.querySelector("[data-admin-feedback-status]");
+  const tableWrap = page.querySelector("[data-admin-feedback-table-wrap]");
+  const rows = page.querySelector("[data-admin-feedback-rows]");
+  const session = await currentSession();
+  const supabase = window.nexoSupabase;
+
+  if (!isFeedbackAdmin(session?.user)) {
+    showInlineMessage(status, "No tenés permisos para acceder a esta sección.", true);
+    if (tableWrap) tableWrap.hidden = true;
+    return;
+  }
+
+  if (!supabase) {
+    showInlineMessage(status, "No se pudo conectar con Supabase.", true);
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("feedback_nexo")
+    .select("created_at,user_email,origen,tipo,seccion,rating,util,mensaje")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    showInlineMessage(status, "No se pudieron cargar las sugerencias.", true);
+    return;
+  }
+
+  if (!data?.length) {
+    showInlineMessage(status, "Todavía no hay sugerencias cargadas.");
+    return;
+  }
+
+  rows.innerHTML = data.map((item) => `
+    <tr>
+      <td>${escapeHtml(formatFeedbackDate(item.created_at))}</td>
+      <td>${escapeHtml(item.user_email || "Sin email")}</td>
+      <td>${escapeHtml(formatFeedbackOrigin(item.origen))}</td>
+      <td>${escapeHtml(item.tipo || "-")}</td>
+      <td>${escapeHtml(item.seccion || "-")}</td>
+      <td>${escapeHtml(item.rating || "-")}</td>
+      <td>${escapeHtml(formatFeedbackUseful(item.util))}</td>
+      <td>${escapeHtml(item.mensaje || "-")}</td>
+    </tr>
+  `).join("");
+
+  if (status) status.classList.remove("show", "error");
+  if (tableWrap) tableWrap.hidden = false;
+}
+
+function showInlineMessage(node, text, isError = false) {
+  if (!node) return;
+  node.textContent = text;
+  node.classList.toggle("error", isError);
+  node.classList.add("show");
+}
+
+function formatFeedbackDate(value) {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("es-AR", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(new Date(value));
+}
+
+function formatFeedbackOrigin(value) {
+  if (value === "tutor_ia") return "Tutor IA";
+  if (value === "panel") return "Panel";
+  return value || "-";
+}
+
+function formatFeedbackUseful(value) {
+  if (value === true) return "Sí";
+  if (value === false) return "No";
+  return "-";
 }
 
 async function initAcademicAssistant() {

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ayudanos a mejorar NEXO | NEXO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-auth-required="true">
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="index.html">NEXO</a>
+      <div class="nav-links"><a href="dashboard.html">Panel</a><a href="materia.html">Materias</a><a href="biblioteca.html">Biblioteca</a><a href="cultura.html">Cultura Universitaria</a><a href="modelos.html">Modelos de examen</a><a href="tutor.html?materia=administracion" data-subject-link="tutor.html">Tutor IA</a></div>
+      <div class="nav-actions"><img class="user-avatar user-avatar-nav" src="assets/images/avatar-default.png" alt="Avatar del usuario"><span class="nav-user" data-nav-user-name>estudiante</span><button class="btn btn-secondary" type="button" data-logout>Cerrar sesión</button></div>
+    </nav>
+  </header>
+  <main class="container feedback-page">
+    <section class="page-head">
+      <div class="page-head-copy">
+        <h1>Ayudanos a mejorar NEXO</h1>
+        <p>Tu opinión es muy valiosa para nosotros.</p>
+      </div>
+    </section>
+    <section class="feedback-form-shell">
+      <form class="card form feedback-form" data-feedback-form>
+        <div class="field">
+          <label>¿Qué tipo de comentario querés dejar?</label>
+          <div class="feedback-option-grid" data-feedback-type-options>
+            <label class="feedback-choice"><input type="radio" name="tipo" value="Sugerencia" checked><span>Sugerencia</span></label>
+            <label class="feedback-choice"><input type="radio" name="tipo" value="Duda"><span>Duda</span></label>
+            <label class="feedback-choice"><input type="radio" name="tipo" value="Error"><span>Error</span></label>
+            <label class="feedback-choice"><input type="radio" name="tipo" value="Otro"><span>Otro</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label>¿Qué tan útil es NEXO para vos?</label>
+          <div class="rating-field" data-rating-field>
+            <input type="radio" id="rating-5" name="rating" value="5"><label for="rating-5">★</label>
+            <input type="radio" id="rating-4" name="rating" value="4"><label for="rating-4">★</label>
+            <input type="radio" id="rating-3" name="rating" value="3"><label for="rating-3">★</label>
+            <input type="radio" id="rating-2" name="rating" value="2"><label for="rating-2">★</label>
+            <input type="radio" id="rating-1" name="rating" value="1" required><label for="rating-1">★</label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="feedback-message">Contanos tu comentario</label>
+          <textarea id="feedback-message" name="mensaje" maxlength="500" required placeholder="Escribí acá tu sugerencia, duda, opinión o lo que quieras que sepamos..." data-feedback-message></textarea>
+          <small class="character-count"><span data-feedback-count>0</span>/500 caracteres</small>
+        </div>
+        <div class="field">
+          <label for="feedback-section">¿A qué sección está relacionado?</label>
+          <select id="feedback-section" name="seccion">
+            <option>General</option>
+            <option>Desafío Diario</option>
+            <option>Tutor IA</option>
+            <option>Premium</option>
+            <option>Cuenta / acceso</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" type="submit" data-feedback-submit>Enviar comentario</button>
+          <a class="btn btn-secondary" href="dashboard.html">Volver al panel</a>
+        </div>
+        <p class="message" data-feedback-status></p>
+      </form>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><strong>NEXO</strong><span>Seguimiento académico personalizado.</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -730,6 +730,61 @@ select:focus {
   background: rgba(255, 255, 255, 0.9);
 }
 
+.dashboard-feedback-section {
+  padding: 10px 0 22px;
+}
+
+.feedback-invite-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  border: 1px solid rgba(217, 151, 36, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fff8df 0%, #fffdf6 100%);
+  box-shadow: 0 8px 22px rgba(120, 78, 10, 0.06);
+}
+
+.feedback-invite-icon {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #8f620d;
+  background: #ffe9a8;
+}
+
+.feedback-invite-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.feedback-invite-card h2 {
+  margin: 0 0 4px;
+  color: var(--navy);
+  font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+}
+
+.feedback-invite-card p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.btn-feedback {
+  color: #5f4109;
+  border-color: rgba(217, 151, 36, 0.42);
+  background: #ffdf7d;
+  box-shadow: 0 10px 20px rgba(217, 151, 36, 0.14);
+}
+
+.btn-feedback:hover {
+  background: #ffd45e;
+}
+
 .stats {
   grid-template-columns: repeat(4, 1fr);
 }
@@ -1483,6 +1538,92 @@ button:disabled {
   font-size: 0.92rem;
 }
 
+.tutor-feedback {
+  display: grid;
+  justify-self: start;
+  width: min(100%, 620px);
+  margin-left: 58px;
+  gap: 8px;
+  border: 1px solid rgba(31, 111, 214, 0.1);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.tutor-feedback-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 30px;
+}
+
+.tutor-feedback-row span {
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.tutor-feedback-link {
+  display: flex;
+  align-items: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.tutor-feedback-link:hover,
+.tutor-feedback-link.is-selected {
+  color: var(--blue);
+  background: #eef6fb;
+}
+
+.tutor-feedback-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.tutor-feedback-detail[hidden] {
+  display: none;
+}
+
+.tutor-feedback-detail textarea {
+  min-height: 56px;
+  padding: 10px 12px;
+  background: var(--white);
+  font-size: 0.92rem;
+}
+
+.tutor-feedback-detail .btn {
+  min-height: 38px;
+  padding-inline: 12px;
+  font-size: 0.9rem;
+}
+
+.tutor-feedback-status {
+  color: #0f684f;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.tutor-feedback-status.error {
+  color: #8f2d1f;
+}
+
+.tutor-feedback-thanks {
+  color: #0f684f;
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
 .premium-tutor-card {
   display: grid;
   gap: 11px;
@@ -1520,6 +1661,134 @@ button:disabled {
 
 .premium-tutor-card .btn {
   width: 100%;
+}
+
+.feedback-page .page-head,
+.admin-feedback-page .page-head {
+  padding: 34px 0 18px;
+}
+
+.feedback-form-shell {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.feedback-form {
+  display: grid;
+  gap: 20px;
+  padding: 26px;
+}
+
+.feedback-form::before,
+.admin-feedback-card::before {
+  background: var(--blue);
+}
+
+.feedback-option-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.feedback-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--navy);
+  background: #f8fbfe;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.feedback-choice:has(input:checked) {
+  border-color: rgba(31, 111, 214, 0.45);
+  background: #eef6fb;
+  box-shadow: 0 8px 18px rgba(31, 111, 214, 0.08);
+}
+
+.rating-field {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.rating-field input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rating-field label {
+  color: #d8e4ef;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.16s ease, transform 0.16s ease;
+}
+
+.rating-field label:hover,
+.rating-field label:hover ~ label,
+.rating-field input:checked ~ label {
+  color: var(--amber);
+}
+
+.rating-field label:hover {
+  transform: translateY(-1px);
+}
+
+.character-count {
+  justify-self: end;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.admin-feedback-card {
+  padding: 0;
+}
+
+.admin-feedback-card .message {
+  margin: 22px;
+}
+
+.admin-feedback-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-feedback-table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+}
+
+.admin-feedback-table th,
+.admin-feedback-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 13px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-feedback-table th {
+  color: var(--navy);
+  background: #f8fbfe;
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-feedback-table td {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.admin-feedback-table td:last-child {
+  min-width: 260px;
+  color: var(--ink);
+  font-weight: 700;
 }
 
 .library-item {
@@ -1744,7 +2013,8 @@ button:disabled {
   .tutor-workspace,
   .dashboard-layout,
   .challenge-layout,
-  .premium-banner {
+  .premium-banner,
+  .feedback-invite-card {
     grid-template-columns: 1fr;
   }
 
@@ -1799,7 +2069,8 @@ button:disabled {
   .grid-4,
   .grid-3,
   .grid-2,
-  .stats {
+  .stats,
+  .feedback-option-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -1867,11 +2138,33 @@ button:disabled {
     width: 100%;
   }
 
+  .feedback-invite-card {
+    align-items: start;
+  }
+
+  .feedback-invite-card .btn,
+  .feedback-option-grid {
+    width: 100%;
+  }
+
+  .tutor-feedback {
+    margin-left: 52px;
+  }
+
+  .tutor-feedback-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .tutor-feedback-detail .btn {
+    width: 100%;
+  }
+
   .metric-strip,
   .grid-4,
   .grid-3,
   .grid-2,
-  .stats {
+  .stats,
+  .feedback-option-grid {
     grid-template-columns: 1fr;
   }
 
