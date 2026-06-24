@@ -618,10 +618,11 @@ async function renderLoggedInUser() {
   const submit = chatForm?.querySelector("button[type='submit']");
 
   practiceButton?.addEventListener("click", async () => {
-    const prompt = "Generá un ejercicio de práctica tipo parcial sobre los temas seleccionados para mi próximo examen.";
+    const prompt = window.nexoTutorExamContext
+      ? "Genera un ejercicio de practica tipo parcial sobre los temas seleccionados para mi proximo examen."
+      : "No tengo un examen cargado. Genera un ejercicio general de practica para Ciencias Economicas usando las materias disponibles de NEXO.";
     if (!window.nexoTutorExamContext) {
-      appendBubble(chat, "Cargá un próximo examen para generar ejercicios contextualizados.", "ai");
-      return;
+      appendBubble(chat, "No tenes un examen cargado, asi que genere un ejercicio general de practica.", "ai");
     }
 
     await sendPracticeExercisePrompt(prompt, { chat, input, submit, practiceButton });
