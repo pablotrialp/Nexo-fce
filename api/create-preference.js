@@ -1,10 +1,9 @@
-const { MercadoPagoConfig, Preference } = require("mercadopago");
-
 const PREMIUM_PRICE_ARS = 1999;
 const SUCCESS_URL = "https://www.nexoedu.com.ar/premium-success.html";
 const FAILURE_URL = "https://www.nexoedu.com.ar/premium-failure.html";
 const PENDING_URL = "https://www.nexoedu.com.ar/premium-pending.html";
 const NOTIFICATION_URL = "https://www.nexoedu.com.ar/api/mercadopago-webhook";
+const EXPECTED_PREFERENCE_STATUS = 201;
 
 function loadLocalEnv(name) {
   if (process.env[name]) return process.env[name];
@@ -36,6 +35,15 @@ function bearerToken(req) {
   return match ? match[1].trim() : "";
 }
 
+function cleanText(value, maxLength = 120) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, maxLength);
+}
+
+function userDisplayName(user) {
+  const metadata = user?.user_metadata || {};
+  return cleanText(metadata.full_name || [metadata.first_name, metadata.last_name].filter(Boolean).join(" "), 80);
+}
+
 async function getAuthenticatedUser(token) {
   const supabaseUrl = loadLocalEnv("SUPABASE_URL");
   const anonKey = loadLocalEnv("SUPABASE_ANON_KEY");
@@ -54,6 +62,59 @@ async function getAuthenticatedUser(token) {
 
   if (!response.ok) return null;
   return response.json();
+}
+
+async function createMercadoPagoPreference(accessToken, user) {
+  const payer = {
+    email: cleanText(user.email, 120)
+  };
+  const name = userDisplayName(user);
+  if (name) payer.name = name;
+
+  const body = {
+    items: [
+      {
+        id: "nexo-premium",
+        title: "NEXO Premium",
+        description: "Acceso Premium a NEXO",
+        category_id: "services",
+        quantity: 1,
+        unit_price: PREMIUM_PRICE_ARS,
+        currency_id: "ARS"
+      }
+    ],
+    payer,
+    external_reference: user.id,
+    metadata: {
+      user_id: user.id
+    },
+    notification_url: NOTIFICATION_URL,
+    back_urls: {
+      success: SUCCESS_URL,
+      failure: FAILURE_URL,
+      pending: PENDING_URL
+    },
+    auto_return: "approved",
+    binary_mode: true,
+    statement_descriptor: "NEXO"
+  };
+
+  const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await response.json().catch(() => ({}));
+
+  return {
+    body,
+    data,
+    ok: response.ok,
+    status: response.status
+  };
 }
 
 module.exports = async function createPreference(req, res) {
@@ -81,34 +142,32 @@ module.exports = async function createPreference(req, res) {
       return;
     }
 
-    const client = new MercadoPagoConfig({ accessToken });
-    const preference = new Preference(client);
-    const result = await preference.create({
-      body: {
-        items: [
-          {
-            title: "NEXO Premium",
-            description: "Acceso Premium a NEXO",
-            quantity: 1,
-            unit_price: PREMIUM_PRICE_ARS,
-            currency_id: "ARS"
-          }
-        ],
-        external_reference: user.id,
-        metadata: {
-          user_id: user.id
-        },
-        notification_url: NOTIFICATION_URL,
-        back_urls: {
-          success: SUCCESS_URL,
-          failure: FAILURE_URL,
-          pending: PENDING_URL
-        },
-        auto_return: "approved"
-      }
-    });
+    const preference = await createMercadoPagoPreference(accessToken, user);
+    const warnings = preference.data?.warnings || preference.data?.warning || null;
+    if (warnings) {
+      console.warn("Mercado Pago preference warnings:", JSON.stringify(warnings));
+    }
 
-    sendJson(res, 200, { init_point: result.init_point });
+    if (!preference.ok || !preference.data?.init_point) {
+      sendJson(res, 502, {
+        error: "No se pudo crear la preferencia de Mercado Pago.",
+        mercado_pago_status: preference.status,
+        mercado_pago_error: preference.data?.message || preference.data?.error || null,
+        mercado_pago_cause: preference.data?.cause || null
+      });
+      return;
+    }
+
+    if (preference.status !== EXPECTED_PREFERENCE_STATUS) {
+      console.warn(`Mercado Pago preference returned HTTP ${preference.status}, expected ${EXPECTED_PREFERENCE_STATUS}.`);
+    }
+
+    sendJson(res, 200, {
+      init_point: preference.data.init_point,
+      preference_id: preference.data.id,
+      mercado_pago_status: preference.status,
+      warnings
+    });
   } catch (error) {
     sendJson(res, 500, { error: error?.message || "No se pudo crear la preferencia de Mercado Pago." });
   }
