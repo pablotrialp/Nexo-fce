@@ -1,6 +1,9 @@
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 const OPENAI_TIMEOUT_MS = 35000;
-const FREE_TUTOR_LIMIT_MESSAGE = "Alcanzaste el limite gratuito del Chat Tutor IA. Activar Premium habilitara consultas ilimitadas.";
+const FREE_TUTOR_DAILY_LIMIT = 20;
+const PREMIUM_TUTOR_DAILY_LIMIT = 50;
+const FREE_TUTOR_LIMIT_MESSAGE = "Alcanzaste el limite diario gratuito del Chat Tutor IA. Activar Premium habilitara mas consultas por dia.";
+const PREMIUM_TUTOR_LIMIT_MESSAGE = "Alcanzaste el limite diario del Chat Tutor IA. Vas a poder volver a usarlo manana.";
 
 function loadLocalEnv(name) {
   if (process.env[name]) return process.env[name];
@@ -70,12 +73,12 @@ async function getAuthenticatedUser(token) {
 }
 
 async function getOrCreateUsage(userId, token) {
-  const select = "id,user_id,used_count,limit_count,is_premium,tutor_chat_used,tutor_chat_limit";
+  const select = "id,user_id,used_count,limit_count,is_premium,tutor_chat_used,tutor_chat_limit,tutor_ai_daily_count,tutor_ai_last_reset_date";
   const query = `/rest/v1/ai_usage?user_id=eq.${encodeURIComponent(userId)}&select=${select}&limit=1`;
   const selectResponse = await supabaseFetch(query, token, { method: "GET" });
 
   if (!selectResponse.ok) {
-    throw new Error("No se pudo consultar el uso del Chat Tutor IA. Verifica las columnas tutor_chat_used y tutor_chat_limit.");
+    throw new Error("No se pudo consultar el uso del Chat Tutor IA. Verifica las columnas de uso diario.");
   }
 
   const rows = await selectResponse.json();
@@ -96,13 +99,18 @@ async function getOrCreateUsage(userId, token) {
 }
 
 async function incrementTutorUsage(usage, token) {
-  if (usage.is_premium) return usage;
-
-  const nextCount = Number(usage.tutor_chat_used || 0) + 1;
-  const response = await supabaseFetch(`/rest/v1/ai_usage?id=eq.${encodeURIComponent(usage.id)}&select=tutor_chat_used,tutor_chat_limit,is_premium`, token, {
+  const normalizedUsage = normalizeTutorUsage(usage);
+  const nextCount = Number(normalizedUsage.tutor_ai_daily_count || 0) + 1;
+  const today = todayDate();
+  const response = await supabaseFetch(`/rest/v1/ai_usage?id=eq.${encodeURIComponent(usage.id)}&select=id,tutor_ai_daily_count,tutor_ai_last_reset_date,is_premium`, token, {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
-    body: JSON.stringify({ tutor_chat_used: nextCount, updated_at: new Date().toISOString() })
+    body: JSON.stringify({
+      tutor_ai_daily_count: nextCount,
+      tutor_ai_last_reset_date: today,
+      tutor_chat_used: nextCount,
+      updated_at: new Date().toISOString()
+    })
   });
 
   if (!response.ok) {
@@ -110,12 +118,61 @@ async function incrementTutorUsage(usage, token) {
   }
 
   const rows = await response.json();
-  return rows[0] || { ...usage, tutor_chat_used: nextCount };
+  return rows[0] || { ...normalizedUsage, tutor_ai_daily_count: nextCount, tutor_ai_last_reset_date: today };
 }
 
 function remainingTutorUses(usage) {
-  if (usage.is_premium) return null;
-  return Math.max(0, Number(usage.tutor_chat_limit || 10) - Number(usage.tutor_chat_used || 0));
+  const normalizedUsage = normalizeTutorUsage(usage);
+  return Math.max(0, tutorDailyLimit(normalizedUsage) - Number(normalizedUsage.tutor_ai_daily_count || 0));
+}
+
+function todayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function tutorDailyLimit(usage) {
+  return usage.is_premium ? PREMIUM_TUTOR_DAILY_LIMIT : FREE_TUTOR_DAILY_LIMIT;
+}
+
+function normalizeTutorUsage(usage) {
+  const today = todayDate();
+  const storedDate = String(usage.tutor_ai_last_reset_date || "");
+  if (storedDate !== today) {
+    return { ...usage, tutor_ai_daily_count: 0, tutor_ai_last_reset_date: today };
+  }
+  return {
+    ...usage,
+    tutor_ai_daily_count: Number(usage.tutor_ai_daily_count || 0),
+    tutor_ai_last_reset_date: today
+  };
+}
+
+async function resetTutorUsageIfNeeded(usage, token) {
+  const normalizedUsage = normalizeTutorUsage(usage);
+  if (
+    Number(normalizedUsage.tutor_ai_daily_count || 0) === Number(usage.tutor_ai_daily_count || 0) &&
+    normalizedUsage.tutor_ai_last_reset_date === usage.tutor_ai_last_reset_date
+  ) {
+    return normalizedUsage;
+  }
+
+  const response = await supabaseFetch(`/rest/v1/ai_usage?id=eq.${encodeURIComponent(usage.id)}&select=id,tutor_ai_daily_count,tutor_ai_last_reset_date,is_premium`, token, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      tutor_ai_daily_count: 0,
+      tutor_ai_last_reset_date: todayDate(),
+      tutor_chat_used: 0,
+      updated_at: new Date().toISOString()
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo reiniciar el uso diario del Chat Tutor IA.");
+  }
+
+  const rows = await response.json();
+  return rows[0] || normalizedUsage;
 }
 
 function cleanHistory(history) {
@@ -185,12 +242,12 @@ async function usageResponse(req, res, token) {
     return;
   }
 
-  const usage = await getOrCreateUsage(user.id, token);
+  const usage = await resetTutorUsageIfNeeded(await getOrCreateUsage(user.id, token), token);
   sendJson(res, 200, {
     remainingUses: remainingTutorUses(usage),
     isPremium: Boolean(usage.is_premium),
-    used: Number(usage.tutor_chat_used || 0),
-    limit: Number(usage.tutor_chat_limit || 10)
+    used: Number(usage.tutor_ai_daily_count || 0),
+    limit: tutorDailyLimit(usage)
   });
 }
 
@@ -218,13 +275,13 @@ module.exports = async function tutorChat(req, res) {
       return;
     }
 
-    const usage = await getOrCreateUsage(user.id, token);
-    if (!usage.is_premium && Number(usage.tutor_chat_used || 0) >= Number(usage.tutor_chat_limit || 10)) {
+    const usage = await resetTutorUsageIfNeeded(await getOrCreateUsage(user.id, token), token);
+    if (Number(usage.tutor_ai_daily_count || 0) >= tutorDailyLimit(usage)) {
       sendJson(res, 200, {
         limitReached: true,
-        message: FREE_TUTOR_LIMIT_MESSAGE,
+        message: usage.is_premium ? PREMIUM_TUTOR_LIMIT_MESSAGE : FREE_TUTOR_LIMIT_MESSAGE,
         remainingUses: 0,
-        isPremium: false
+        isPremium: Boolean(usage.is_premium)
       });
       return;
     }

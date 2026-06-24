@@ -1158,7 +1158,7 @@ async function hydrateDashboardAiUsage() {
   dashboardAiUsageUnavailable = false;
   const { data, error } = await supabase
     .from("ai_usage")
-    .select("used_count,limit_count,is_premium")
+    .select("used_count,limit_count,is_premium,tutor_ai_daily_count,tutor_ai_last_reset_date")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -1803,20 +1803,36 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
         });
         const data = await result.json();
         if (data.limitReached) {
+          response.textContent = data.message || "Llegaste al limite diario de explicaciones IA.";
+          response.classList.add("show");
+          button.textContent = "Limite diario alcanzado";
+          if (!data.isPremium) {
+            showPremiumModal({
+              title: "Llegaste al limite diario de explicaciones IA",
+              text: "Con NEXO Premium podes recibir mas explicaciones IA por dia y seguir practicando sin interrupciones.",
+              primary: "Activar Premium",
+              secondary: "Seguir sin IA"
+            });
+          }
+          return;
+        }
+        if (data.limitReached) {
           response.textContent = data.message || "Llegaste al límite gratuito de explicaciones IA.";
           response.classList.add("show");
-          button.textContent = "Limite gratuito alcanzado";
+          button.textContent = "Limite diario alcanzado";
+          if (!data.isPremium) {
           showPremiumModal({
             title: "Llegaste al límite gratuito de explicaciones IA",
             text: "Con NEXO Premium podés recibir explicaciones ilimitadas y seguir practicando sin interrupciones.",
             primary: "Activar Premium",
             secondary: "Seguir sin IA"
           });
+          }
           return;
         }
         if (!result.ok || !data.explanation) throw new Error(data.error || "No se pudo generar la explicacion.");
         const remainingCopy = typeof data.remainingUses === "number"
-          ? `<p class="ai-usage-note">Te quedan ${data.remainingUses} explicaciones IA gratuitas.</p>`
+          ? `<p class="ai-usage-note">Te quedan ${data.remainingUses} explicaciones IA restantes hoy.</p>`
           : data.isPremium
             ? '<p class="ai-usage-note">NEXO Premium activo.</p>'
             : "";
@@ -1833,6 +1849,22 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
   });
 
   return renderedHelp;
+}
+
+async function consumeDailyTestUsage() {
+  const session = await currentSession();
+  if (!session?.access_token) throw new Error("Tenes que iniciar sesion para usar el Test Diario.");
+
+  const response = await fetch("/api/daily-test-usage", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      "Content-Type": "application/json"
+    }
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "No se pudo validar el limite diario del Test Diario.");
+  return data;
 }
 
 function renderChallenge() {
@@ -1904,7 +1936,7 @@ function renderChallenge() {
     reward.classList.add("show");
   }
 
-  finishButton.addEventListener("click", () => {
+  finishButton.addEventListener("click", async () => {
     const unansweredIndex = firstUnansweredQuestion(challenge, activeBlock.questions, "challenge");
     if (unansweredIndex !== -1) {
       const unansweredNode = challenge.querySelector(`[data-question-index="${unansweredIndex}"]`);
@@ -1916,6 +1948,37 @@ function renderChallenge() {
 
     const score = scoreQuiz(challenge, activeBlock.questions, "challenge");
     const total = activeBlock.questions.length;
+    const originalFinishText = finishButton.textContent;
+    finishButton.disabled = true;
+    finishButton.textContent = "Validando limite diario...";
+
+    try {
+      const usage = await consumeDailyTestUsage();
+      if (usage.limitReached) {
+        reward.textContent = usage.message || "Llegaste al limite diario del Test Diario.";
+        reward.classList.add("show");
+        finishButton.disabled = false;
+        finishButton.textContent = originalFinishText;
+        if (!usage.isPremium) {
+          showPremiumModal({
+            title: "Llegaste al limite diario del Test Diario",
+            text: "Con NEXO Premium podes practicar mas bloques por dia y seguir avanzando sin interrupciones.",
+            primary: "Activar Premium",
+            secondary: "Seguir manana"
+          });
+        }
+        reward.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+    } catch (error) {
+      reward.textContent = error?.message || "No se pudo validar el limite diario del Test Diario.";
+      reward.classList.add("show");
+      finishButton.disabled = false;
+      finishButton.textContent = originalFinishText;
+      reward.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
     const award = completeChallengeBlock(slug, roundIndex, blockIndex, score, total);
     const aiErrorHelp = renderAiErrorHelp(challenge, activeBlock.questions, "challenge", subject.name);
     const updatedProgress = getProgress();
@@ -1935,7 +1998,6 @@ function renderChallenge() {
     reward.classList.add("show");
     pomodoro.stop();
     finishButton.textContent = "Bloque completado";
-    finishButton.disabled = true;
     if (livePoints) livePoints.textContent = `${updatedProgress.totalPoints} pts`;
     renderMap();
     if (hasNextBlock) {
@@ -2113,13 +2175,15 @@ async function requestTutorChatAnswer(message) {
 
   if (result.limitReached) {
     updateTutorChatUsage(result);
+    if (!result.isPremium) {
     showPremiumModal({
       title: "Llegaste al límite gratuito del Tutor IA",
-      text: "Activá Premium para continuar con consultas ilimitadas, ejercicios de práctica y recomendaciones personalizadas.",
+      text: "Activa Premium para tener mas consultas diarias, ejercicios de practica y recomendaciones personalizadas.",
       primary: "Activar Premium",
       secondary: "Seguir gratis"
     });
-    throw new Error(result.message || "Alcanzaste el limite gratuito del Chat Tutor IA. Activar Premium habilitara consultas ilimitadas.");
+    }
+    throw new Error(result.message || "Alcanzaste el limite diario del Chat Tutor IA.");
   }
 
   if (!result.answer) throw new Error(result.error || "El Tutor IA no devolvio una respuesta.");
@@ -2149,7 +2213,8 @@ function updateTutorChatUsage(usage) {
   if (!target || !usage) return;
 
   if (usage.isPremium) {
-    target.textContent = "Consultas Tutor IA: Ilimitadas";
+    const remaining = Number.isFinite(Number(usage.remainingUses)) ? Number(usage.remainingUses) : 0;
+    target.textContent = `Consultas Tutor IA premium restantes hoy: ${remaining}`;
     updatePremiumUi(true);
     return;
   }

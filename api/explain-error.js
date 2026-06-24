@@ -1,6 +1,9 @@
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 const OPENAI_TIMEOUT_MS = 35000;
-const FREE_AI_LIMIT_MESSAGE = "Alcanzaste el límite gratuito de explicaciones IA. Para continuar usando el Tutor IA, activá NEXO Premium.";
+const FREE_DAILY_TEST_LIMIT = 10;
+const PREMIUM_DAILY_TEST_LIMIT = 20;
+const FREE_AI_LIMIT_MESSAGE = "Alcanzaste el limite diario gratuito de explicaciones IA. Activar Premium habilitara mas explicaciones por dia.";
+const PREMIUM_AI_LIMIT_MESSAGE = "Alcanzaste el limite diario de explicaciones IA. Vas a poder volver a usarlas manana.";
 const UPGRADE_URL = "https://www.mercadopago.com.ar/";
 
 function loadLocalEnv(name) {
@@ -45,6 +48,32 @@ function bearerToken(req) {
   return match ? match[1].trim() : "";
 }
 
+function todayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function dailyTestLimit(usage) {
+  return usage.is_premium ? PREMIUM_DAILY_TEST_LIMIT : FREE_DAILY_TEST_LIMIT;
+}
+
+function normalizeDailyTestUsage(usage) {
+  const today = todayDate();
+  const storedDate = String(usage.daily_test_last_reset_date || "");
+  if (storedDate !== today) {
+    return { ...usage, daily_test_count: 0, daily_test_last_reset_date: today };
+  }
+  return {
+    ...usage,
+    daily_test_count: Number(usage.daily_test_count || 0),
+    daily_test_last_reset_date: today
+  };
+}
+
+function remainingUses(usage) {
+  const normalizedUsage = normalizeDailyTestUsage(usage);
+  return Math.max(0, dailyTestLimit(normalizedUsage) - Number(normalizedUsage.daily_test_count || 0));
+}
+
 async function supabaseFetch(path, token, options = {}) {
   const supabaseUrl = loadLocalEnv("SUPABASE_URL");
   const anonKey = loadLocalEnv("SUPABASE_ANON_KEY");
@@ -71,49 +100,77 @@ async function getAuthenticatedUser(token) {
 }
 
 async function getOrCreateUsage(userId, token) {
-  const query = `/rest/v1/ai_usage?user_id=eq.${encodeURIComponent(userId)}&select=id,user_id,used_count,limit_count,is_premium&limit=1`;
+  const select = "id,user_id,is_premium,daily_test_count,daily_test_last_reset_date";
+  const query = `/rest/v1/ai_usage?user_id=eq.${encodeURIComponent(userId)}&select=${select}&limit=1`;
   const selectResponse = await supabaseFetch(query, token, { method: "GET" });
 
   if (!selectResponse.ok) {
-    throw new Error("No se pudo consultar el uso de IA.");
+    throw new Error("No se pudo consultar el uso diario de explicaciones IA.");
   }
 
   const rows = await selectResponse.json();
   if (rows[0]) return rows[0];
 
-  const insertResponse = await supabaseFetch("/rest/v1/ai_usage?select=id,user_id,used_count,limit_count,is_premium", token, {
+  const insertResponse = await supabaseFetch(`/rest/v1/ai_usage?select=${select}`, token, {
     method: "POST",
     headers: { Prefer: "return=representation" },
     body: JSON.stringify({ user_id: userId })
   });
 
   if (!insertResponse.ok) {
-    throw new Error("No se pudo inicializar el uso de IA.");
+    throw new Error("No se pudo inicializar el uso diario de explicaciones IA.");
   }
 
   const inserted = await insertResponse.json();
   return inserted[0];
 }
 
-async function incrementUsage(usage, token) {
-  const nextCount = Number(usage.used_count || 0) + 1;
-  const response = await supabaseFetch(`/rest/v1/ai_usage?id=eq.${encodeURIComponent(usage.id)}&select=used_count,limit_count,is_premium`, token, {
+async function resetDailyTestUsageIfNeeded(usage, token) {
+  const normalizedUsage = normalizeDailyTestUsage(usage);
+  if (
+    Number(normalizedUsage.daily_test_count || 0) === Number(usage.daily_test_count || 0) &&
+    normalizedUsage.daily_test_last_reset_date === usage.daily_test_last_reset_date
+  ) {
+    return normalizedUsage;
+  }
+
+  const response = await supabaseFetch(`/rest/v1/ai_usage?id=eq.${encodeURIComponent(usage.id)}&select=id,daily_test_count,daily_test_last_reset_date,is_premium`, token, {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
-    body: JSON.stringify({ used_count: nextCount, updated_at: new Date().toISOString() })
+    body: JSON.stringify({
+      daily_test_count: 0,
+      daily_test_last_reset_date: todayDate(),
+      updated_at: new Date().toISOString()
+    })
   });
 
   if (!response.ok) {
-    throw new Error("No se pudo actualizar el uso de IA.");
+    throw new Error("No se pudo reiniciar el uso diario de explicaciones IA.");
   }
 
   const rows = await response.json();
-  return rows[0] || { ...usage, used_count: nextCount };
+  return rows[0] || normalizedUsage;
 }
 
-function remainingUses(usage) {
-  if (usage.is_premium) return null;
-  return Math.max(0, Number(usage.limit_count || 4) - Number(usage.used_count || 0));
+async function incrementUsage(usage, token) {
+  const normalizedUsage = normalizeDailyTestUsage(usage);
+  const nextCount = Number(normalizedUsage.daily_test_count || 0) + 1;
+  const response = await supabaseFetch(`/rest/v1/ai_usage?id=eq.${encodeURIComponent(usage.id)}&select=daily_test_count,daily_test_last_reset_date,is_premium`, token, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      daily_test_count: nextCount,
+      daily_test_last_reset_date: todayDate(),
+      updated_at: new Date().toISOString()
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo actualizar el uso diario de explicaciones IA.");
+  }
+
+  const rows = await response.json();
+  return rows[0] || { ...normalizedUsage, daily_test_count: nextCount, daily_test_last_reset_date: todayDate() };
 }
 
 module.exports = async function explainError(req, res) {
@@ -136,15 +193,15 @@ module.exports = async function explainError(req, res) {
       return;
     }
 
-    const usage = await getOrCreateUsage(user.id, token);
-    const usedCount = Number(usage.used_count || 0);
-    const limitCount = Number(usage.limit_count || 4);
+    const usage = await resetDailyTestUsageIfNeeded(await getOrCreateUsage(user.id, token), token);
 
-    if (!usage.is_premium && usedCount >= limitCount) {
+    if (Number(usage.daily_test_count || 0) >= dailyTestLimit(usage)) {
       sendJson(res, 200, {
         limitReached: true,
-        message: FREE_AI_LIMIT_MESSAGE,
-        upgradeUrl: UPGRADE_URL
+        message: usage.is_premium ? PREMIUM_AI_LIMIT_MESSAGE : FREE_AI_LIMIT_MESSAGE,
+        upgradeUrl: UPGRADE_URL,
+        remainingUses: 0,
+        isPremium: Boolean(usage.is_premium)
       });
       return;
     }

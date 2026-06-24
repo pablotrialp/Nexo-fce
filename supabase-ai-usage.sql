@@ -4,6 +4,10 @@ create table if not exists public.ai_usage (
   used_count integer not null default 0 check (used_count >= 0),
   limit_count integer not null default 4 check (limit_count >= 0),
   is_premium boolean not null default false,
+  tutor_ai_daily_count integer not null default 0 check (tutor_ai_daily_count >= 0),
+  tutor_ai_last_reset_date date not null default current_date,
+  daily_test_count integer not null default 0 check (daily_test_count >= 0),
+  daily_test_last_reset_date date not null default current_date,
   updated_at timestamptz not null default now(),
   unique (user_id)
 );
