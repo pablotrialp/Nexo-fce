@@ -1026,7 +1026,7 @@ function defaultProgress() {
     totalPoints: 0,
     completedChallenges: 0,
     completedDiagnostics: 0,
-    streak: 1,
+    streak: 0,
     studyMinutes: 0,
     subjects: {}
   };
@@ -1042,6 +1042,15 @@ function getProgress() {
 
 function saveProgress(progress) {
   localStorage.setItem(progressKey, JSON.stringify(progress));
+}
+
+function resetProgressToInitialState() {
+  const progress = defaultProgress();
+  Object.keys(subjects).forEach((slug) => {
+    ensureSubjectProgress(progress, slug);
+  });
+  saveProgress(progress);
+  return progress;
 }
 
 function normalizeText(value) {
@@ -1089,12 +1098,45 @@ function ensureSubjectProgress(progress, slug) {
   return progress.subjects[slug];
 }
 
+function initialUserProgressRows(userId) {
+  const now = new Date().toISOString();
+  return Object.keys(subjects).map((subject) => ({
+    user_id: userId,
+    subject,
+    total_points: 0,
+    completed_challenges: 0,
+    correct_answers: 0,
+    wrong_answers: 0,
+    streak: 0,
+    last_activity_at: null,
+    updated_at: now
+  }));
+}
+
+async function ensureInitialUserProgress(session) {
+  const supabase = window.nexoSupabase;
+  if (!session?.user || !supabase) return { ok: false };
+
+  const { error } = await supabase
+    .from("user_progress")
+    .upsert(initialUserProgressRows(session.user.id), { onConflict: "user_id,subject", ignoreDuplicates: true });
+
+  if (error) {
+    console.error("No se pudo inicializar user_progress en NEXO.", error);
+    return { ok: false };
+  }
+
+  return { ok: true };
+}
+
 async function hydrateUserProgress() {
   const session = await currentSession();
   const supabase = window.nexoSupabase;
   if (!session?.user || !supabase) return;
 
   dashboardUserProgressUnavailable = false;
+  await ensureInitialUserProgress(session);
+
   const { data, error } = await supabase
     .from("user_progress")
     .select("subject,total_points,completed_challenges,correct_answers,wrong_answers,streak,last_activity_at")
@@ -1103,21 +1145,25 @@ async function hydrateUserProgress() {
   if (error) {
     dashboardHasUserProgress = false;
     dashboardUserProgressUnavailable = true;
+    resetProgressToInitialState();
     return;
   }
 
   if (!Array.isArray(data) || !data.length) {
-    dashboardHasUserProgress = false;
+    const initialized = await ensureInitialUserProgress(session);
+    dashboardHasUserProgress = initialized.ok;
+    dashboardUserProgressUnavailable = !initialized.ok;
+    resetProgressToInitialState();
     return;
   }
 
   dashboardHasUserProgress = true;
 
-  const progress = getProgress();
+  const progress = resetProgressToInitialState();
   progress.totalPoints = 0;
   progress.completedChallenges = 0;
   progress.studyMinutes = 0;
-  progress.streak = 1;
+  progress.streak = 0;
 
   data.forEach((row) => {
     const slug = subjects[row.subject] ? row.subject : slugFromSubjectName(row.subject);
@@ -1141,7 +1187,7 @@ async function hydrateUserProgress() {
     progress.totalPoints += subjectProgress.points;
     progress.completedChallenges += completedCount;
     progress.studyMinutes += completedCount * 15;
-    progress.streak = Math.max(progress.streak, Number(row.streak || 1));
+    progress.streak = Math.max(progress.streak, Number(row.streak || 0));
   });
 
   saveProgress(progress);
@@ -1777,6 +1823,8 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
     const response = help.querySelector("[data-ai-error-response]");
 
     button.addEventListener("click", async () => {
+      if (help.dataset.aiErrorLoading === "true" || help.dataset.aiErrorDone === "true") return;
+      help.dataset.aiErrorLoading = "true";
       button.disabled = true;
       button.textContent = "Generando explicacion...";
       response.textContent = "";
@@ -1787,13 +1835,16 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
         const accessToken = sessionData?.session?.access_token;
         if (!accessToken) throw new Error("Tenes que iniciar sesion para usar el Tutor IA.");
 
+        const requestId = window.crypto?.randomUUID?.() || `explain-${Date.now()}-${Math.random().toString(16).slice(2)}`;
         const result = await fetch("/api/explain-error", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${accessToken}`,
+            "X-Request-Id": requestId,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
+            request_id: requestId,
             subject: subjectName,
             question_text: question.text,
             selected_answer_text: selectedAnswerText(scope, question, index, prefix),
@@ -1839,11 +1890,14 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
         response.innerHTML = `<p>${escapeHtml(data.explanation)}</p>${remainingCopy}`;
         response.classList.add("show");
         button.textContent = "Explicacion generada";
+        help.dataset.aiErrorDone = "true";
       } catch (error) {
         response.textContent = error?.message || "No se pudo generar la explicacion ahora. Revisa la explicacion oficial e intenta nuevamente.";
         response.classList.add("show", "error");
         button.disabled = false;
         button.textContent = "Reintentar explicacion con IA";
+      } finally {
+        help.dataset.aiErrorLoading = "false";
       }
     });
   });
@@ -1854,11 +1908,13 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
 async function consumeDailyTestUsage() {
   const session = await currentSession();
   if (!session?.access_token) throw new Error("Tenes que iniciar sesion para usar el Test Diario.");
+  const requestId = window.crypto?.randomUUID?.() || `daily-test-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   const response = await fetch("/api/daily-test-usage", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${session.access_token}`,
+      "X-Request-Id": requestId,
       "Content-Type": "application/json"
     }
   });

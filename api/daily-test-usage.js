@@ -33,6 +33,11 @@ function bearerToken(req) {
   return match ? match[1].trim() : "";
 }
 
+function requestId(req) {
+  const header = req.headers["x-request-id"] || req.headers["X-Request-Id"];
+  return String(header || "").trim().slice(0, 120) || `daily-test-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 function todayDate() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -132,27 +137,6 @@ async function resetDailyTestUsageIfNeeded(usage, token) {
   return rows[0] || normalizedUsage;
 }
 
-async function incrementDailyTestUsage(usage, token) {
-  const normalizedUsage = normalizeDailyTestUsage(usage);
-  const nextCount = Number(normalizedUsage.daily_test_count || 0) + 1;
-  const response = await supabaseFetch(`/rest/v1/ai_usage?id=eq.${encodeURIComponent(usage.id)}&select=daily_test_count,daily_test_last_reset_date,is_premium`, token, {
-    method: "PATCH",
-    headers: { Prefer: "return=representation" },
-    body: JSON.stringify({
-      daily_test_count: nextCount,
-      daily_test_last_reset_date: todayDate(),
-      updated_at: new Date().toISOString()
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error("No se pudo actualizar el uso diario del Test Diario.");
-  }
-
-  const rows = await response.json();
-  return rows[0] || { ...normalizedUsage, daily_test_count: nextCount, daily_test_last_reset_date: todayDate() };
-}
-
 function usagePayload(usage) {
   return {
     remainingUses: Math.max(0, dailyTestLimit(usage) - Number(usage.daily_test_count || 0)),
@@ -169,6 +153,7 @@ module.exports = async function dailyTestUsage(req, res) {
   }
 
   const token = bearerToken(req);
+  const traceId = requestId(req);
   if (!token) {
     sendJson(res, 401, { error: "Tenes que iniciar sesion para usar el Test Diario." });
     return;
@@ -182,22 +167,26 @@ module.exports = async function dailyTestUsage(req, res) {
     }
 
     const usage = await resetDailyTestUsageIfNeeded(await getOrCreateUsage(user.id, token), token);
+    const countBefore = Number(usage.daily_test_count || 0);
+    console.log("[USAGE_STATUS]", {
+      request_id: traceId,
+      endpoint: "/api/daily-test-usage",
+      method: req.method,
+      action: "read_daily_test_count",
+      user_id: user.id,
+      before: countBefore,
+      after: countBefore
+    });
+
     if (req.method === "GET") {
       sendJson(res, 200, usagePayload(usage));
       return;
     }
 
-    if (Number(usage.daily_test_count || 0) >= dailyTestLimit(usage)) {
-      sendJson(res, 200, {
-        limitReached: true,
-        message: usage.is_premium ? PREMIUM_DAILY_TEST_LIMIT_MESSAGE : FREE_DAILY_TEST_LIMIT_MESSAGE,
-        ...usagePayload(usage)
-      });
-      return;
-    }
-
-    const updatedUsage = await incrementDailyTestUsage(usage, token);
-    sendJson(res, 200, usagePayload(updatedUsage));
+    sendJson(res, 200, {
+      ...usagePayload(usage),
+      checkedOnly: true
+    });
   } catch (error) {
     sendJson(res, 500, { error: error?.message || "Error inesperado al validar el Test Diario." });
   }

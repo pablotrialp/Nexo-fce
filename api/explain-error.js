@@ -48,6 +48,11 @@ function bearerToken(req) {
   return match ? match[1].trim() : "";
 }
 
+function requestId(req) {
+  const header = req.headers["x-request-id"] || req.headers["X-Request-Id"];
+  return cleanText(header, 120) || `explain-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 function todayDate() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -180,6 +185,7 @@ module.exports = async function explainError(req, res) {
   }
 
   const token = bearerToken(req);
+  const traceId = requestId(req);
 
   if (!token) {
     sendJson(res, 401, { error: "Tenes que iniciar sesion para usar el Tutor IA." });
@@ -194,8 +200,26 @@ module.exports = async function explainError(req, res) {
     }
 
     const usage = await resetDailyTestUsageIfNeeded(await getOrCreateUsage(user.id, token), token);
+    const countBefore = Number(usage.daily_test_count || 0);
+    console.log("[USAGE_STATUS]", {
+      request_id: traceId,
+      endpoint: "/api/explain-error",
+      action: "read_before_explanation",
+      user_id: user.id,
+      before: countBefore,
+      after: countBefore
+    });
 
     if (Number(usage.daily_test_count || 0) >= dailyTestLimit(usage)) {
+      console.log("[USAGE_STATUS]", {
+        request_id: traceId,
+        endpoint: "/api/explain-error",
+        action: "limit_reached",
+        user_id: user.id,
+        before: countBefore,
+        after: countBefore,
+        limit_reached: true
+      });
       sendJson(res, 200, {
         limitReached: true,
         message: usage.is_premium ? PREMIUM_AI_LIMIT_MESSAGE : FREE_AI_LIMIT_MESSAGE,
@@ -277,10 +301,20 @@ module.exports = async function explainError(req, res) {
     }
 
     const updatedUsage = await incrementUsage(usage, token);
+    const countAfter = Number(updatedUsage.daily_test_count || 0);
+    console.log("[USAGE_INCREMENT]", {
+      request_id: traceId,
+      endpoint: "/api/explain-error",
+      action: "generated_explanation",
+      user_id: user.id,
+      before: countBefore,
+      after: countAfter
+    });
     sendJson(res, 200, {
       explanation,
       remainingUses: remainingUses(updatedUsage),
-      isPremium: Boolean(updatedUsage.is_premium)
+      isPremium: Boolean(updatedUsage.is_premium),
+      requestId: traceId
     });
   } catch (error) {
     if (error?.name === "AbortError") {
