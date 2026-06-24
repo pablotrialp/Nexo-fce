@@ -4,6 +4,7 @@ const PREMIUM_PRICE_ARS = 1999;
 const SUCCESS_URL = "https://www.nexoedu.com.ar/premium-success.html";
 const FAILURE_URL = "https://www.nexoedu.com.ar/premium-failure.html";
 const PENDING_URL = "https://www.nexoedu.com.ar/premium-pending.html";
+const NOTIFICATION_URL = "https://www.nexoedu.com.ar/api/mercadopago-webhook";
 
 function loadLocalEnv(name) {
   if (process.env[name]) return process.env[name];
@@ -94,6 +95,10 @@ module.exports = async function createPreference(req, res) {
           }
         ],
         external_reference: user.id,
+        metadata: {
+          user_id: user.id
+        },
+        notification_url: NOTIFICATION_URL,
         back_urls: {
           success: SUCCESS_URL,
           failure: FAILURE_URL,
