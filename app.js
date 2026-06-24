@@ -2454,6 +2454,13 @@ async function initAdminFeedbackPage() {
   const status = page.querySelector("[data-admin-feedback-status]");
   const tableWrap = page.querySelector("[data-admin-feedback-table-wrap]");
   const rows = page.querySelector("[data-admin-feedback-rows]");
+  const summary = page.querySelector("[data-admin-feedback-summary]");
+  const dashboard = page.querySelector("[data-admin-feedback-dashboard]");
+  const insights = page.querySelector("[data-admin-feedback-insights]");
+  const controls = page.querySelector("[data-admin-feedback-controls]");
+  const search = page.querySelector("[data-feedback-search]");
+  const typeFilter = page.querySelector("[data-feedback-type-filter]");
+  const sectionFilter = page.querySelector("[data-feedback-section-filter]");
   const session = await currentSession();
   const supabase = window.nexoSupabase;
 
@@ -2483,21 +2490,245 @@ async function initAdminFeedbackPage() {
     return;
   }
 
-  rows.innerHTML = data.map((item) => `
+  const feedback = [...data].sort((first, second) => new Date(second.created_at) - new Date(first.created_at));
+  populateFeedbackFilters(feedback, typeFilter, sectionFilter);
+  renderAdminFeedbackDashboard(page, feedback);
+
+  const renderFilteredRows = () => {
+    const query = normalizeText(search?.value || "");
+    const selectedType = typeFilter?.value || "";
+    const selectedSection = sectionFilter?.value || "";
+    const filtered = feedback.filter((item) => {
+      const haystack = normalizeText([item.user_email, item.mensaje, item.origen].filter(Boolean).join(" "));
+      const matchesQuery = !query || haystack.includes(query);
+      const matchesType = !selectedType || normalizedFeedbackType(item.tipo) === selectedType;
+      const matchesSection = !selectedSection || feedbackSectionLabel(item.seccion) === selectedSection;
+      return matchesQuery && matchesType && matchesSection;
+    });
+    renderAdminFeedbackRows(rows, filtered);
+  };
+
+  renderFilteredRows();
+  [search, typeFilter, sectionFilter].forEach((control) => {
+    control?.addEventListener("input", renderFilteredRows);
+    control?.addEventListener("change", renderFilteredRows);
+  });
+
+  if (status) status.classList.remove("show", "error");
+  if (tableWrap) tableWrap.hidden = false;
+  if (summary) summary.hidden = false;
+  if (dashboard) dashboard.hidden = false;
+  if (insights) insights.hidden = false;
+  if (controls) controls.hidden = false;
+}
+
+function renderAdminFeedbackRows(rows, feedback) {
+  if (!rows) return;
+  rows.innerHTML = feedback.length ? feedback.map((item) => `
     <tr>
       <td>${escapeHtml(formatFeedbackDate(item.created_at))}</td>
       <td>${escapeHtml(item.user_email || "Sin email")}</td>
       <td>${escapeHtml(formatFeedbackOrigin(item.origen))}</td>
-      <td>${escapeHtml(item.tipo || "-")}</td>
-      <td>${escapeHtml(item.seccion || "-")}</td>
-      <td>${escapeHtml(item.rating || "-")}</td>
-      <td>${escapeHtml(formatFeedbackUseful(item.util))}</td>
+      <td>${feedbackBadge(normalizedFeedbackType(item.tipo), feedbackTypeLabel(item.tipo))}</td>
+      <td>${escapeHtml(feedbackSectionLabel(item.seccion))}</td>
+      <td>${escapeHtml(formatFeedbackRating(item.rating))}</td>
+      <td>${feedbackUsefulBadge(item.util)}</td>
       <td>${escapeHtml(item.mensaje || "-")}</td>
     </tr>
-  `).join("");
+  `).join("") : '<tr><td colspan="8" class="admin-empty-row">No hay resultados para los filtros aplicados.</td></tr>';
+}
 
-  if (status) status.classList.remove("show", "error");
-  if (tableWrap) tableWrap.hidden = false;
+function renderAdminFeedbackDashboard(page, feedback) {
+  const metrics = adminFeedbackMetrics(feedback);
+  const summary = page.querySelector("[data-admin-feedback-summary]");
+  if (summary) {
+    summary.innerHTML = [
+      ["Feedback total", metrics.total, "Comentarios cargados"],
+      ["Rating promedio", metrics.averageRating, "Sobre 5 estrellas"],
+      ["Errores", metrics.errors, "Reportes marcados"],
+      ["Sugerencias", metrics.suggestions, "Ideas recibidas"],
+      ["Tutor IA util", `${metrics.tutorUsefulPercent}%`, "Opiniones positivas"],
+      ["Usuarios unicos", metrics.uniqueUsers, "Emails distintos"]
+    ].map(([label, value, hint]) => `
+      <article class="admin-metric-card">
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+        <small>${escapeHtml(hint)}</small>
+      </article>
+    `).join("");
+  }
+
+  const typeCounts = countBy(feedback, (item) => normalizedFeedbackType(item.tipo), ["sugerencia", "error", "duda", "opinion_tutor"]);
+  renderDonutChart(page.querySelector("[data-feedback-type-chart]"), page.querySelector("[data-feedback-type-legend]"), [
+    { label: "Sugerencia", value: typeCounts.sugerencia, color: "#1f6fd6" },
+    { label: "Error", value: typeCounts.error, color: "#ff7a59" },
+    { label: "Duda", value: typeCounts.duda, color: "#ffbe3d" },
+    { label: "Opinion Tutor", value: typeCounts.opinion_tutor, color: "#18a999" }
+  ]);
+
+  renderBarChart(page.querySelector("[data-feedback-section-chart]"), countBy(feedback, (item) => feedbackSectionLabel(item.seccion)));
+
+  renderDonutChart(page.querySelector("[data-feedback-useful-chart]"), page.querySelector("[data-feedback-useful-legend]"), [
+    { label: "Util", value: feedback.filter((item) => item.util === true).length, color: "#18a999" },
+    { label: "No util", value: feedback.filter((item) => item.util === false).length, color: "#ff7a59" },
+    { label: "Sin respuesta", value: feedback.filter((item) => item.util !== true && item.util !== false).length, color: "#d8e4ef" }
+  ]);
+
+  renderTopIssues(page.querySelector("[data-feedback-top-issues]"), feedback);
+  renderFeedbackTimeline(page.querySelector("[data-feedback-timeline]"), feedback.slice(0, 8));
+}
+
+function adminFeedbackMetrics(feedback) {
+  const ratings = feedback.map((item) => Number(item.rating)).filter((value) => Number.isFinite(value) && value > 0);
+  const tutorVotes = feedback.filter((item) => item.util === true || item.util === false);
+  const tutorUseful = tutorVotes.filter((item) => item.util === true).length;
+  return {
+    total: feedback.length,
+    averageRating: ratings.length ? (ratings.reduce((total, value) => total + value, 0) / ratings.length).toFixed(1) : "-",
+    errors: feedback.filter((item) => normalizedFeedbackType(item.tipo) === "error").length,
+    suggestions: feedback.filter((item) => normalizedFeedbackType(item.tipo) === "sugerencia").length,
+    tutorUsefulPercent: tutorVotes.length ? Math.round((tutorUseful / tutorVotes.length) * 100) : 0,
+    uniqueUsers: new Set(feedback.map((item) => String(item.user_email || "").toLowerCase()).filter(Boolean)).size
+  };
+}
+
+function populateFeedbackFilters(feedback, typeFilter, sectionFilter) {
+  if (typeFilter) {
+    const types = [...new Set(feedback.map((item) => normalizedFeedbackType(item.tipo)).filter(Boolean))];
+    typeFilter.innerHTML = '<option value="">Todos los tipos</option>' + types
+      .map((type) => `<option value="${escapeHtml(type)}">${escapeHtml(feedbackTypeLabel(type))}</option>`)
+      .join("");
+  }
+  if (sectionFilter) {
+    const sections = [...new Set(feedback.map((item) => feedbackSectionLabel(item.seccion)).filter(Boolean))]
+      .sort((first, second) => first.localeCompare(second, "es"));
+    sectionFilter.innerHTML = '<option value="">Todas las secciones</option>' + sections
+      .map((section) => `<option value="${escapeHtml(section)}">${escapeHtml(section)}</option>`)
+      .join("");
+  }
+}
+
+function normalizedFeedbackType(value) {
+  const normalized = normalizeText(value);
+  if (normalized.includes("error")) return "error";
+  if (normalized.includes("duda")) return "duda";
+  if (normalized.includes("opinion_tutor") || normalized.includes("tutor")) return "opinion_tutor";
+  if (normalized.includes("sugerencia")) return "sugerencia";
+  return normalized || "otro";
+}
+
+function feedbackTypeLabel(value) {
+  const type = normalizedFeedbackType(value);
+  const labels = {
+    sugerencia: "Sugerencia",
+    error: "Error",
+    duda: "Duda",
+    opinion_tutor: "Opinion Tutor",
+    otro: "Otro"
+  };
+  return labels[type] || value || "-";
+}
+
+function feedbackSectionLabel(value) {
+  return String(value || "General").trim() || "General";
+}
+
+function formatFeedbackRating(value) {
+  const rating = Number(value);
+  return Number.isFinite(rating) && rating > 0 ? `${rating}/5` : "-";
+}
+
+function feedbackBadge(type, label) {
+  return `<span class="admin-feedback-badge admin-feedback-badge-${escapeHtml(type)}">${escapeHtml(label)}</span>`;
+}
+
+function feedbackUsefulBadge(value) {
+  if (value === true) return '<span class="admin-feedback-badge admin-feedback-badge-util">Util</span>';
+  if (value === false) return '<span class="admin-feedback-badge admin-feedback-badge-no-util">No util</span>';
+  return '<span class="admin-feedback-badge admin-feedback-badge-muted">-</span>';
+}
+
+function countBy(items, mapper, initialKeys = []) {
+  const counts = Object.fromEntries(initialKeys.map((key) => [key, 0]));
+  items.forEach((item) => {
+    const key = mapper(item) || "Sin datos";
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  return counts;
+}
+
+function renderDonutChart(chart, legend, entries) {
+  if (!chart || !legend) return;
+  const total = entries.reduce((sum, entry) => sum + entry.value, 0);
+  let cursor = 0;
+  const segments = entries.map((entry) => {
+    const start = total ? (cursor / total) * 100 : 0;
+    cursor += entry.value;
+    const end = total ? (cursor / total) * 100 : 0;
+    return `${entry.color} ${start}% ${end}%`;
+  }).join(", ");
+  chart.style.background = total ? `conic-gradient(${segments})` : "#edf4fb";
+  chart.innerHTML = `<strong>${total}</strong><span>Total</span>`;
+  legend.innerHTML = entries.map((entry) => `
+    <div class="admin-legend-item"><i style="background:${entry.color}"></i><span>${escapeHtml(entry.label)}</span><strong>${entry.value}</strong></div>
+  `).join("");
+}
+
+function renderBarChart(container, counts) {
+  if (!container) return;
+  const entries = Object.entries(counts)
+    .sort((first, second) => second[1] - first[1])
+    .slice(0, 8);
+  const max = Math.max(...entries.map(([, value]) => value), 1);
+  container.innerHTML = entries.map(([label, value]) => `
+    <div class="admin-bar-row">
+      <span>${escapeHtml(label)}</span>
+      <div class="admin-bar-track"><i style="width:${Math.round((value / max) * 100)}%"></i></div>
+      <strong>${value}</strong>
+    </div>
+  `).join("");
+}
+
+function renderTopIssues(container, feedback) {
+  if (!container) return;
+  const stopWords = new Set(["para", "pero", "como", "esta", "este", "esto", "porque", "cuando", "donde", "tiene", "tener", "nexo", "sobre", "muy", "mas", "menos", "con", "que", "los", "las", "una", "uno", "por", "del", "sin", "hay"]);
+  const counts = {};
+  feedback.forEach((item) => {
+    normalizeText(item.mensaje || "").split(/\s+/).forEach((word) => {
+      if (word.length < 4 || stopWords.has(word)) return;
+      counts[word] = (counts[word] || 0) + 1;
+    });
+  });
+  const entries = Object.entries(counts).sort((first, second) => second[1] - first[1]).slice(0, 5);
+  container.innerHTML = entries.length ? entries.map(([word, count]) => `
+    <li><span>${escapeHtml(word)}</span><strong>${count}</strong></li>
+  `).join("") : '<li><span>Sin temas recurrentes todavia</span><strong>0</strong></li>';
+}
+
+function renderFeedbackTimeline(container, feedback) {
+  if (!container) return;
+  container.innerHTML = feedback.map((item) => `
+    <article class="admin-timeline-item">
+      <span>${escapeHtml(feedbackRelativeDate(item.created_at))}</span>
+      <strong>${escapeHtml(item.user_email || "Usuario sin email")}</strong>
+      <p>${escapeHtml(feedbackTimelineText(item))}</p>
+    </article>
+  `).join("");
+}
+
+function feedbackRelativeDate(value) {
+  const date = new Date(value);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (date.toDateString() === today.toDateString()) return "Hoy";
+  if (date.toDateString() === yesterday.toDateString()) return "Ayer";
+  return formatFeedbackDate(value);
+}
+
+function feedbackTimelineText(item) {
+  if (normalizedFeedbackType(item.tipo) === "opinion_tutor") return `califico el Tutor IA como ${formatFeedbackUseful(item.util).toLowerCase()}.`;
+  return `envio ${feedbackTypeLabel(item.tipo).toLowerCase()} en ${feedbackSectionLabel(item.seccion)}.`;
 }
 
 function showInlineMessage(node, text, isError = false) {

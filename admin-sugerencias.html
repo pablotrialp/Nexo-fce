@@ -21,7 +21,74 @@
         <p>Vista interna para revisar comentarios enviados por usuarios de NEXO.</p>
       </div>
     </section>
+    <section class="admin-feedback-summary" data-admin-feedback-summary hidden></section>
+    <section class="admin-feedback-dashboard" data-admin-feedback-dashboard hidden>
+      <article class="card admin-chart-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Distribución por tipo</h2>
+            <p>Sugerencias, errores, dudas y opiniones del Tutor IA.</p>
+          </div>
+        </div>
+        <div class="admin-donut-layout">
+          <div class="admin-donut" data-feedback-type-chart></div>
+          <div class="admin-chart-legend" data-feedback-type-legend></div>
+        </div>
+      </article>
+      <article class="card admin-chart-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Feedback por sección</h2>
+            <p>Volumen de comentarios por Área de NEXO.</p>
+          </div>
+        </div>
+        <div class="admin-bar-chart" data-feedback-section-chart></div>
+      </article>
+      <article class="card admin-chart-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Valoración Tutor IA</h2>
+            <p>Respuestas marcadas como útiles o no útiles.</p>
+          </div>
+        </div>
+        <div class="admin-donut-layout">
+          <div class="admin-donut admin-donut-compact" data-feedback-useful-chart></div>
+          <div class="admin-chart-legend" data-feedback-useful-legend></div>
+        </div>
+      </article>
+    </section>
+    <section class="admin-feedback-insights" data-admin-feedback-insights hidden>
+      <article class="card admin-insight-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Top temas reportados</h2>
+            <p>Agrupación simple por palabras frecuentes en comentarios.</p>
+          </div>
+        </div>
+        <ol class="admin-top-list" data-feedback-top-issues></ol>
+      </article>
+      <article class="card admin-insight-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Actividad reciente</h2>
+            <p>Últimos movimientos recibidos.</p>
+          </div>
+        </div>
+        <div class="admin-timeline" data-feedback-timeline></div>
+      </article>
+    </section>
     <section class="card admin-feedback-card">
+      <div class="admin-table-toolbar" data-admin-feedback-controls hidden>
+        <div>
+          <h2>Detalle de feedback</h2>
+          <p>Explorá comentarios por usuario, tipo o sección.</p>
+        </div>
+        <div class="admin-feedback-filters">
+          <input type="search" placeholder="Buscar usuario o email" data-feedback-search>
+          <select data-feedback-type-filter><option value="">Todos los tipos</option></select>
+          <select data-feedback-section-filter><option value="">Todas las secciones</option></select>
+        </div>
+      </div>
       <p class="message show" data-admin-feedback-status>Cargando sugerencias...</p>
       <div class="admin-feedback-table-wrap" data-admin-feedback-table-wrap hidden>
         <table class="admin-feedback-table">
