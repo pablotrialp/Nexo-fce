@@ -79,7 +79,6 @@ async function createMercadoPagoPreference(accessToken, user) {
       pending: PENDING_URL
     },
     auto_return: "approved",
-    binary_mode: true,
     statement_descriptor: "NEXO"
   };
 
@@ -128,16 +127,23 @@ module.exports = async function createPreference(req, res) {
 
     const preference = await createMercadoPagoPreference(accessToken, user);
     const warnings = preference.data?.warnings || preference.data?.warning || null;
-    if (warnings) {
-      console.warn("Mercado Pago preference warnings:", JSON.stringify(warnings));
-    }
+    const cause = preference.data?.cause || null;
+    const preferenceLog = {
+      preference_id: preference.data?.id || null,
+      mercado_pago_status: preference.status,
+      warnings,
+      cause,
+      additional_fields: preference.data || null
+    };
+    console.log("Mercado Pago preference response:", JSON.stringify(preferenceLog));
 
     if (!preference.ok || !preference.data?.init_point) {
       sendJson(res, 502, {
         error: "No se pudo crear la preferencia de Mercado Pago.",
         mercado_pago_status: preference.status,
         mercado_pago_error: preference.data?.message || preference.data?.error || null,
-        mercado_pago_cause: preference.data?.cause || null
+        mercado_pago_cause: cause,
+        mercado_pago_response: preference.data || null
       });
       return;
     }
@@ -150,7 +156,9 @@ module.exports = async function createPreference(req, res) {
       init_point: preference.data.init_point,
       preference_id: preference.data.id,
       mercado_pago_status: preference.status,
-      warnings
+      warnings,
+      cause,
+      mercado_pago_response: preference.data
     });
   } catch (error) {
     sendJson(res, 500, { error: error?.message || "No se pudo crear la preferencia de Mercado Pago." });
