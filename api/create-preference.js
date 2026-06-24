@@ -35,15 +35,6 @@ function bearerToken(req) {
   return match ? match[1].trim() : "";
 }
 
-function cleanText(value, maxLength = 120) {
-  return String(value || "").replace(/\s+/g, " ").trim().slice(0, maxLength);
-}
-
-function userDisplayName(user) {
-  const metadata = user?.user_metadata || {};
-  return cleanText(metadata.full_name || [metadata.first_name, metadata.last_name].filter(Boolean).join(" "), 80);
-}
-
 async function getAuthenticatedUser(token) {
   const supabaseUrl = loadLocalEnv("SUPABASE_URL");
   const anonKey = loadLocalEnv("SUPABASE_ANON_KEY");
@@ -65,12 +56,6 @@ async function getAuthenticatedUser(token) {
 }
 
 async function createMercadoPagoPreference(accessToken, user) {
-  const payer = {
-    email: cleanText(user.email, 120)
-  };
-  const name = userDisplayName(user);
-  if (name) payer.name = name;
-
   const body = {
     items: [
       {
@@ -83,7 +68,6 @@ async function createMercadoPagoPreference(accessToken, user) {
         currency_id: "ARS"
       }
     ],
-    payer,
     external_reference: user.id,
     metadata: {
       user_id: user.id
