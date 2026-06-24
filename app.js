@@ -1294,7 +1294,7 @@ async function initPremiumSuccess() {
 
   dashboardAiUsage = { ...(dashboardAiUsage || {}), is_premium: true };
   updatePremiumUi(true);
-  result.textContent = "Premium activado correctamente. Ya tenés consultas ilimitadas.";
+  result.textContent = "Premium activado correctamente. Ya tenes acceso extendido al Tutor IA.";
 }
 
 async function initPremiumSuccess() {
@@ -1504,7 +1504,7 @@ function nextPracticeSubjectSlug() {
 
 function dashboardAiUsageText(usage, unavailable = false) {
   if (unavailable) return "IA · sin datos";
-  if (usage?.is_premium) return "Premium activo · IA ilimitada";
+  if (usage?.is_premium) return "Premium activo · IA avanzada";
   if (!usage) return "IA · 4 restantes";
 
   const limit = Number.isFinite(Number(usage.limit_count)) ? Number(usage.limit_count) : 4;
@@ -1875,7 +1875,7 @@ function renderAiErrorHelp(scope, questions, prefix, subjectName) {
           if (!data.isPremium) {
           showPremiumModal({
             title: "Llegaste al límite gratuito de explicaciones IA",
-            text: "Con NEXO Premium podés recibir explicaciones ilimitadas y seguir practicando sin interrupciones.",
+            text: "Con NEXO Premium podes recibir mas explicaciones IA por dia y seguir practicando sin interrupciones.",
             primary: "Activar Premium",
             secondary: "Seguir sin IA"
           });
