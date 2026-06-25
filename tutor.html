@@ -20,7 +20,7 @@
         <h1>Tutor IA</h1>
         <p>Asistencia de estudio para resolver dudas, practicar contenidos y prepararte según tus próximos exámenes. NEXO utiliza tu rendimiento, temas seleccionados y fechas de examen para orientar mejor las recomendaciones.</p>
       </div>
-      <img class="page-illustration tutor-head-illustration" src="assets/images/tutor-ai.svg" alt="Asistente académico con inteligencia artificial">
+      <img class="page-illustration tutor-head-illustration" src="assets/images/chatbot.svg" alt="Asistente académico con inteligencia artificial">
     </section>
     <section class="academic-assistant" aria-labelledby="academic-assistant-title">
       <h2 id="academic-assistant-title" class="section-title">Asistente académico</h2>
@@ -51,7 +51,18 @@
         <p class="message" data-exam-goal-message></p>
       </form>
       <div class="grid grid-4 academic-assistant-grid" data-academic-cards hidden>
-        <article class="card academic-card" data-next-exam>
+        <article class="card academic-card">
+          <small>Próxima acción sugerida</small>
+          <h3 data-academic-next-action-title>Continuar desafío</h3>
+          <p data-academic-next-action-copy></p>
+          <a class="btn btn-secondary" href="desafio.html?materia=administracion" data-academic-next-action-link>Continuar desafío</a>
+        </article>
+        <article class="card academic-card academic-card-recommendation">
+          <small>Recomendación NEXO</small>
+          <h3>Recomendación NEXO</h3>
+          <p data-study-recommendation></p>
+        </article>
+        <article class="card academic-card" data-next-exam data-exam-dependent>
           <small>Próximo examen</small>
           <h3>Próximo examen</h3>
           <div class="academic-card-content">
@@ -60,25 +71,10 @@
             <span class="badge" data-next-exam-days></span>
           </div>
         </article>
-        <article class="card academic-card">
+        <article class="card academic-card" data-exam-dependent>
           <small>Temas seleccionados</small>
           <h3>Temas del examen</h3>
           <ul class="academic-topic-list" data-exam-topics></ul>
-        </article>
-        <article class="card academic-card">
-          <small>Seguimiento académico</small>
-          <h3>Seguimiento académico</h3>
-          <div class="academic-card-content" data-weak-topics></div>
-        </article>
-        <article class="card academic-card">
-          <small>Rendimiento actual</small>
-          <h3>Rendimiento actual</h3>
-          <p data-academic-performance></p>
-        </article>
-        <article class="card academic-card academic-card-recommendation">
-          <small>Recomendación NEXO</small>
-          <h3>Recomendación NEXO</h3>
-          <p data-study-recommendation></p>
         </article>
       </div>
       <div class="academic-assistant-actions" data-academic-actions hidden>
@@ -99,7 +95,7 @@
             <h2>Chat con Tutor IA</h2>
             <div class="chat-toolbar">
               <span class="badge" data-premium-badge hidden>⭐ Premium activo</span>
-              <span class="badge badge-muted tutor-usage-badge" data-tutor-chat-usage>💬 Consultas restantes: --</span>
+              <span class="badge badge-muted tutor-usage-badge" data-tutor-chat-usage>Tutor IA: --/20 consultas hoy</span>
             </div>
           </div>
         </div>
@@ -112,12 +108,22 @@
           <button class="btn btn-secondary tutor-practice-action" type="button" data-practice-exercise>Generar ejercicio de práctica</button>
         </form>
       </article>
-      <aside class="premium-tutor-card" data-premium-cta>
-        <span class="premium-tutor-badge">Premium</span>
-        <small>NEXO Premium</small>
-        <h2>Tutor IA avanzado + ejercicios de práctica</h2>
-        <strong>$1.999 ARS</strong>
-        <button class="btn btn-primary" type="button" data-premium-checkout>Activar Premium</button>
+      <aside class="tutor-side-panel" aria-label="Recursos visuales del Tutor IA">
+        <div class="tutor-study-card" aria-hidden="true">
+          <img src="assets/images/tutor-ai.svg" alt="">
+          <div class="tutor-study-lines">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+        <section class="premium-tutor-card" data-premium-cta>
+          <span class="premium-tutor-badge">Premium</span>
+          <small>NEXO Premium</small>
+          <h2>Tutor IA avanzado + ejercicios de práctica</h2>
+          <strong>$1.999 ARS</strong>
+          <button class="btn btn-primary" type="button" data-premium-checkout>Activar Premium</button>
+        </section>
       </aside>
     </section>
   </main>

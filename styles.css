@@ -1270,7 +1270,14 @@ select:focus {
 }
 
 .academic-assistant-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
+  gap: 18px;
+}
+
+.academic-assistant-grid[data-has-exam="true"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .academic-assistant-actions {
@@ -1372,6 +1379,18 @@ select:focus {
 
 .academic-card h3 {
   margin-bottom: 2px;
+}
+
+.academic-card p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.academic-card .btn {
+  justify-self: start;
+  margin-top: 2px;
 }
 
 .academic-card-content {
@@ -1506,18 +1525,15 @@ button:disabled {
 
 .tutor-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(220px, 1fr);
+  grid-template-columns: minmax(0, 2.6fr) minmax(240px, 0.9fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
   margin-top: 10px;
-}
-
-.tutor-workspace:has(.premium-tutor-card[hidden]) {
-  grid-template-columns: minmax(0, 1fr);
 }
 
 .tutor-chat-card {
   display: grid;
+  align-content: start;
   gap: 18px;
   padding: 26px;
   border-color: rgba(31, 111, 214, 0.18);
@@ -1590,6 +1606,50 @@ button:disabled {
   min-height: 38px;
   padding-inline: 14px;
   font-size: 0.92rem;
+}
+
+.tutor-side-panel {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.tutor-study-card {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  border: 1px solid rgba(31, 111, 214, 0.16);
+  border-radius: 8px;
+  padding: 18px;
+  background: linear-gradient(180deg, #f8fbfe 0%, #ffffff 100%);
+}
+
+.tutor-study-card img {
+  width: min(100%, 190px);
+  max-height: 180px;
+  object-fit: contain;
+}
+
+.tutor-study-lines {
+  display: grid;
+  width: 100%;
+  gap: 8px;
+}
+
+.tutor-study-lines span {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: #eef6fb;
+}
+
+.tutor-study-lines span:nth-child(2) {
+  width: 82%;
+  background: #e7f5f2;
+}
+
+.tutor-study-lines span:nth-child(3) {
+  width: 58%;
 }
 
 .tutor-feedback {
@@ -1681,8 +1741,6 @@ button:disabled {
 .premium-tutor-card {
   display: grid;
   gap: 11px;
-  max-width: 280px;
-  justify-self: end;
   border: 1px solid rgba(217, 151, 36, 0.34);
   border-radius: 8px;
   padding: 16px;
@@ -2367,8 +2425,17 @@ button:disabled {
   margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: center;
+  gap: 10px 16px;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.footer-inner strong,
+.footer-inner span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
 }
 
 @media (max-width: 900px) {
@@ -2449,6 +2516,11 @@ button:disabled {
   .stats,
   .feedback-option-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .academic-assistant-grid,
+  .academic-assistant-grid[data-has-exam="true"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .dashboard-premium-card {
@@ -2597,6 +2669,11 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .academic-assistant-grid,
+  .academic-assistant-grid[data-has-exam="true"] {
+    grid-template-columns: 1fr;
+  }
+
   .admin-metric-card,
   .admin-chart-card,
   .admin-insight-card {
@@ -2617,7 +2694,7 @@ button:disabled {
   }
 
   .footer-inner {
-    align-items: flex-start;
+    align-items: center;
     flex-direction: column;
   }
 

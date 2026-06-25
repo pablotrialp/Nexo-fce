@@ -1502,16 +1502,52 @@ function nextPracticeSubjectSlug() {
     .sort((a, b) => a.completion - b.completion || a.priority - b.priority)[0]?.slug || "administracion";
 }
 
-function dashboardAiUsageText(usage, unavailable = false) {
-  if (unavailable) return "IA · sin datos";
-  if (usage?.is_premium) return "Premium activo · IA avanzada";
-  if (!usage) return "IA · 4 restantes";
+function tutorDashboardSummary(progress = getProgress()) {
+  const completedBlocks = Object.keys(subjects).reduce((total, slug) => {
+    const subjectProgress = ensureSubjectProgress(progress, slug);
+    return total + subjectProgress.completedBlocks.length + subjectProgress.completedReviewBlocks.length;
+  }, 0);
+  const totalBlocks = Object.keys(subjects).reduce((total, slug) => total + challengeBlocks[slug].length + reinforcementBlocks[slug].length, 0);
+  const general = totalBlocks ? Math.round((completedBlocks / totalBlocks) * 100) : 0;
+  const nextSlug = nextPracticeSubjectSlug();
+  const subject = subjects[nextSlug];
+  const subjectProgress = ensureSubjectProgress(progress, nextSlug);
+  const totalResponses = Number(subjectProgress.correctAnswers || 0) + Number(subjectProgress.wrongAnswers || 0);
+  const accuracy = totalResponses ? Math.round((Number(subjectProgress.correctAnswers || 0) / totalResponses) * 100) : 0;
+  const completion = subjectCompletion(nextSlug);
+  const publicSlug = publicSubjectSlug(nextSlug);
+  const nextTitleBySlug = {
+    administracion: `Completar el siguiente bloque de ${subject.name}`,
+    economia: `Continuar con ${subject.name}`,
+    contabilidad: `Reforzar ${subject.name}`
+  };
+  const nextCopy = dashboardHasUserProgress
+    ? `${subject.name} registra ${completion}% completado. Te conviene continuar por la materia con menor avance.`
+    : "Sin progreso previo registrado, empezá por Administración I para iniciar el recorrido.";
 
-  const limit = Number.isFinite(Number(usage.limit_count)) ? Number(usage.limit_count) : 4;
-  const used = Number.isFinite(Number(usage.used_count)) ? Number(usage.used_count) : 0;
-  const remaining = Math.max(0, limit - used);
-  if (remaining === 0) return "Límite IA alcanzado";
-  return `IA · ${remaining} restante${remaining === 1 ? "" : "s"}`;
+  return {
+    performance: `Progreso general: ${general}% completado · ${progress.totalPoints} pts · ${progress.completedChallenges} desafío${progress.completedChallenges === 1 ? "" : "s"} completado${progress.completedChallenges === 1 ? "" : "s"}.`,
+    next_title: nextTitleBySlug[nextSlug] || `Continuar con ${subject.name}`,
+    next_copy: nextCopy,
+    next_href: `desafio.html?materia=${publicSlug}`,
+    recommendation: `Tu rendimiento acumulado en ${subject.name} es ${accuracy}% de aciertos. ${nextCopy}`,
+    performance_context: {
+      subject: subject.name,
+      completed_challenges: progress.completedChallenges,
+      total_points: progress.totalPoints,
+      progress_percent: general,
+      study_minutes: progress.studyMinutes
+    }
+  };
+}
+
+function dashboardAiUsageText(usage, unavailable = false) {
+  if (unavailable) return "Tutor IA: sin datos";
+  if (usage?.is_premium) return "Tutor IA premium: uso ampliado";
+
+  const limit = 20;
+  const used = Number.isFinite(Number(usage?.tutor_ai_daily_count)) ? Number(usage.tutor_ai_daily_count) : 0;
+  return `Tutor IA: ${Math.min(Math.max(used, 0), limit)}/${limit} consultas hoy`;
 }
 
 function renderProgressPage() {
@@ -2219,7 +2255,7 @@ async function hydrateTutorChatUsage() {
     const result = await tutorChatFetch("GET");
     updateTutorChatUsage(result);
   } catch {
-    setText("[data-tutor-chat-usage]", "Consultas Tutor IA restantes: --");
+    setText("[data-tutor-chat-usage]", "Tutor IA: --/20 consultas hoy");
   }
 }
 
@@ -2270,15 +2306,16 @@ function updateTutorChatUsage(usage) {
   if (!target || !usage) return;
 
   if (usage.isPremium) {
-    const remaining = Number.isFinite(Number(usage.remainingUses)) ? Number(usage.remainingUses) : 0;
-    target.textContent = `Consultas Tutor IA premium restantes hoy: ${remaining}`;
+    target.textContent = "Tutor IA premium: uso ampliado";
     updatePremiumUi(true);
     return;
   }
 
   updatePremiumUi(false);
   const remaining = Number.isFinite(Number(usage.remainingUses)) ? Number(usage.remainingUses) : 0;
-  target.textContent = `Consultas Tutor IA restantes: ${remaining}`;
+  const limit = Number.isFinite(Number(usage.limit)) ? Number(usage.limit) : 20;
+  const used = Number.isFinite(Number(usage.used)) ? Number(usage.used) : Math.max(0, limit - remaining);
+  target.textContent = `Tutor IA: ${Math.min(Math.max(used, 0), limit)}/${limit} consultas hoy`;
 }
 
 function appendTutorFeedbackPrompt(chat) {
@@ -2798,7 +2835,7 @@ async function initAcademicAssistant() {
   cancelButton?.addEventListener("click", async () => {
     await resetExamGoalForm(form);
     if (form) form.hidden = true;
-    if (emptyState && cards?.hidden) emptyState.hidden = false;
+    if (emptyState) emptyState.hidden = !assistant.querySelector("[data-next-exam]")?.hidden;
     hideExamGoalMessage(message);
   });
 
@@ -2863,7 +2900,8 @@ async function initAcademicAssistant() {
   } catch (error) {
     console.error("No se pudo cargar el proximo examen.", error);
     if (emptyState) emptyState.hidden = false;
-    if (cards) cards.hidden = true;
+    if (cards) cards.hidden = false;
+    renderAcademicAssistant(null, null);
     showExamGoalMessage(message, "No se pudo cargar tu próximo examen. Intentá de nuevo más tarde.", true);
   }
 }
@@ -3084,70 +3122,76 @@ function renderAcademicAssistant(examGoal, academicPerformance = null) {
   const emptyState = assistant.querySelector("[data-exam-empty-state]");
   const cards = assistant.querySelector("[data-academic-cards]");
   const actions = assistant.querySelector("[data-academic-actions]");
+  const examCards = assistant.querySelectorAll("[data-exam-dependent]");
   const subject = assistant.querySelector("[data-next-exam-subject]");
   const date = assistant.querySelector("[data-next-exam-date]");
   const days = assistant.querySelector("[data-next-exam-days]");
   const examTopics = assistant.querySelector("[data-exam-topics]");
-  const weakTopics = assistant.querySelector("[data-weak-topics]");
-  const performance = assistant.querySelector("[data-academic-performance]");
+  const nextActionTitle = assistant.querySelector("[data-academic-next-action-title]");
+  const nextActionCopy = assistant.querySelector("[data-academic-next-action-copy]");
+  const nextActionLink = assistant.querySelector("[data-academic-next-action-link]");
   const recommendation = assistant.querySelector("[data-study-recommendation]");
 
-  if (!examGoal) {
+  const progress = getProgress();
+  const summary = tutorDashboardSummary(progress);
+  const hasExam = Boolean(examGoal);
+
+  if (!hasExam) {
     window.nexoTutorExamContext = null;
     if (emptyState) emptyState.hidden = false;
-    if (cards) cards.hidden = true;
+    if (cards) cards.hidden = false;
     if (actions) actions.hidden = true;
-    return;
+    examCards.forEach((card) => {
+      card.hidden = true;
+    });
   }
 
-  const daysLeft = daysUntilExam(examGoal.exam_date);
-  const topicList = Array.isArray(examGoal.topics) ? examGoal.topics : [];
+  const daysLeft = hasExam ? daysUntilExam(examGoal.exam_date) : 0;
+  const topicList = hasExam && Array.isArray(examGoal.topics) ? examGoal.topics : [];
   const weakness = academicWeaknessesForExam(examGoal);
-  const recommendationText = studyRecommendation(daysLeft, topicList, academicPerformance);
-  window.nexoTutorExamContext = {
+  const recommendationText = hasExam ? studyRecommendation(daysLeft, topicList, academicPerformance, examGoal.subject) : summary.recommendation;
+  if (hasExam) window.nexoTutorExamContext = {
     ...examGoal,
     days_left: daysLeft,
     weak_topics: weakness.topics,
-    academic_performance: academicPerformance
+    academic_performance: academicPerformance || summary.performance_context
   };
 
-  if (emptyState) emptyState.hidden = true;
+  if (emptyState) emptyState.hidden = hasExam;
   if (cards) cards.hidden = false;
-  if (actions) actions.hidden = false;
+  if (cards) cards.dataset.hasExam = hasExam ? "true" : "false";
+  if (actions) actions.hidden = !hasExam;
+  examCards.forEach((card) => {
+    card.hidden = !hasExam;
+  });
 
-  if (subject) {
+  if (hasExam && subject) {
     subject.textContent = examGoal.subject;
     subject.dataset.nextExamSubject = examGoal.subject;
   }
 
-  if (date) {
+  if (hasExam && date) {
     date.textContent = formatExamDate(examGoal.exam_date);
     date.dataset.nextExamDate = examGoal.exam_date;
   }
 
-  if (days) {
+  if (hasExam && days) {
     days.textContent = examDaysLabel(daysLeft);
     days.dataset.nextExamDays = String(daysLeft);
   }
 
-  if (examTopics) {
+  if (hasExam && examTopics) {
     examTopics.dataset.examTopics = topicList.join(", ");
     examTopics.innerHTML = topicList.length
       ? topicList.map((topic) => `<li>${escapeHtml(topic)}</li>`).join("")
       : "<li>Sin temas cargados todavía</li>";
   }
 
-  if (weakTopics) {
-    weakTopics.dataset.weakTopics = weakness.topics.join(", ");
-    weakTopics.innerHTML = weakness.topics.length
-      ? `<ul class="academic-topic-list">${weakness.topics.map((topic) => `<li>${escapeHtml(topic)}</li>`).join("")}</ul>`
-      : `<p>${escapeHtml(weakness.message)}</p>`;
-  }
-
-  if (performance) {
-    performance.textContent = academicPerformance
-      ? performanceSummary(academicPerformance)
-      : "Aún no hay suficiente práctica registrada en esta materia.";
+  if (nextActionTitle) nextActionTitle.textContent = summary.next_title;
+  if (nextActionCopy) nextActionCopy.textContent = summary.next_copy;
+  if (nextActionLink) {
+    nextActionLink.textContent = "Continuar desafío";
+    nextActionLink.setAttribute("href", summary.next_href);
   }
 
   if (recommendation) {
@@ -3289,52 +3333,21 @@ function studyRecommendation(daysLeft, weakTopics = []) {
   return `${daysCopy} para tu examen. Priorizá ${weakTopics.slice(0, 2).join(" y ")}, donde registrás más errores.`;
 }
 
-function studyRecommendation(daysLeft, topics = [], performance = null) {
-  const safeDays = Math.max(daysLeft, 0);
-  const dayText = safeDays === 1 ? "1 día" : `${safeDays} días`;
-  const topicText = topics.length ? topics.slice(0, 3).join(" y ") : "los temas seleccionados";
+function studyRecommendation(daysLeft, topics = [], performance = null, subjectName = "la materia") {
   const hasPerformance = performance && Number.isFinite(Number(performance.accuracy_rate));
-  const accuracy = hasPerformance ? Math.round(Number(performance.accuracy_rate) * 100) : null;
+  const accuracy = hasPerformance && performance.total_responses
+    ? Math.round(Number(performance.accuracy_rate) * 100)
+    : null;
+  const subjectText = subjectName || performance?.subject || "la materia";
+  const topicsCopy = topics.length
+    ? `Reforzá los temas seleccionados: ${topics.slice(0, 3).join(" y ")}.`
+    : "Reforzá los temas seleccionados con práctica adicional.";
 
-  if (!hasPerformance || !performance.total_responses) {
-    if (safeDays <= 3) {
-      return `Como faltan ${dayText} para el examen, priorizá repaso intensivo y ejercicios prácticos de ${topicText}. Completá desafíos para que NEXO pueda medir tu rendimiento real.`;
-    }
-    if (safeDays <= 10) {
-      return `Faltan ${dayText} para el examen. Combiná teoría con práctica y completá desafíos de ${topicText} para registrar tu avance.`;
-    }
-    return `Faltan ${dayText} para el examen. Avanzá de forma progresiva con ${topicText} y sumá desafíos para construir tu diagnóstico académico.`;
+  if (accuracy === null) {
+    return `Para tu próximo examen de ${subjectText}, todavía no hay suficiente práctica acumulada en la materia. ${topicsCopy}`;
   }
 
-  if (accuracy < 50) {
-    if (safeDays <= 3) {
-      return `Tu rendimiento actual es ${accuracy}%. Como faltan ${dayText} para el examen, priorizá ejercicios prácticos de ${topicText} y completá al menos 2 desafíos adicionales antes de rendir.`;
-    }
-    if (safeDays <= 10) {
-      return `Tu rendimiento actual es ${accuracy}%. Reforzá la materia con teoría breve, práctica guiada y desafíos adicionales de ${topicText}.`;
-    }
-    return `Tu rendimiento actual es ${accuracy}%. Tenés tiempo para reforzar la materia: estudiá ${topicText} de forma progresiva y aumentá la cantidad de desafíos.`;
-  }
-
-  if (accuracy <= 75) {
-    if (safeDays <= 3) {
-      return `Tu rendimiento actual es ${accuracy}%. Consolidá conocimientos con ejercicios prácticos de ${topicText} y repasá los conceptos que todavía te generen dudas.`;
-    }
-    if (safeDays <= 10) {
-      return `Tu rendimiento actual es ${accuracy}%. Alterná práctica y teoría, y completá desafíos adicionales para consolidar ${topicText}.`;
-    }
-    return `Tu rendimiento actual es ${accuracy}%. Mantené un estudio progresivo y usá las próximas semanas para consolidar ${topicText}.`;
-  }
-
-  if (safeDays <= 3) {
-    return `Tu rendimiento es sólido (${accuracy}%). En estos ${dayText}, hacé simulacros cortos, repasos finales y ejercicios prácticos de ${topicText}.`;
-  }
-
-  if (safeDays <= 10) {
-    return `Tu rendimiento es sólido (${accuracy}%). Combiná simulacros con repasos puntuales y completá algunos desafíos extra para llegar con ritmo.`;
-  }
-
-  return "Tu rendimiento es sólido. Aprovechá las próximas semanas para realizar simulacros y reforzar conceptos puntuales.";
+  return `Para tu próximo examen de ${subjectText}, tu rendimiento acumulado en la materia es ${accuracy}% de aciertos. ${topicsCopy}`;
 }
 
 function showExamGoalMessage(message, text, isError = false) {
